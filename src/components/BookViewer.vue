@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, onUnmounted, nextTick, watchEffect } from 'vue';
 import { useBookStore } from '@/stores/book';
 import { useSettingsStore } from '@/stores/settings';
 import { useTheme } from '@/composables/useTheme';
@@ -52,12 +52,6 @@ function handleScroll() {
   }, 500);
 }
 
-function scrollToTop() {
-  if (containerRef.value) {
-    containerRef.value.scrollTop = 0;
-  }
-}
-
 function renderCurrentChapter() {
   if (!articleRef.value || !bookStore.currentBook) return;
   
@@ -70,17 +64,10 @@ function renderCurrentChapter() {
   articleRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
 }
 
-watch(() => bookStore.currentChapter, async (newChapter, oldChapter) => {
-  if (newChapter === oldChapter) return;
-  
-  renderCurrentChapter();
-  await nextTick();
-  scrollToTop();
-});
-
-onMounted(() => {
-  renderCurrentChapter();
-  nextTick(() => scrollToTop());
+watchEffect(() => {
+  if (articleRef.value && bookStore.currentBook && bookStore.chapters.length > 0) {
+    nextTick(() => renderCurrentChapter());
+  }
 });
 
 onUnmounted(() => {
@@ -90,13 +77,14 @@ onUnmounted(() => {
 
 <template>
   <div class="flex justify-center h-full py-6 px-4">
-    <div 
+    <div
+      :key="bookStore.currentChapter"
       ref="containerRef"
-      class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+      class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scroll-smooth"
       :class="[contentWidth, themeClasses.bg, themeClasses.text]"
       @scroll="handleScroll"
     >
-      <div 
+      <div
         ref="articleRef"
         class="prose max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg"
         :class="themeClasses.prose"

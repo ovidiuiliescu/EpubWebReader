@@ -87,48 +87,50 @@ function closePanels() {
 
     <!-- Book Loaded State -->
     <template v-else>
-      <!-- Top Controls -->
-      <Controls
-        @toggle-toc="toggleToc"
-        @toggle-search="toggleSearch"
-        @toggle-library="toggleLibrary"
-      />
+      <div class="flex flex-col h-screen">
+        <!-- Top Controls -->
+        <Controls
+          @toggle-toc="toggleToc"
+          @toggle-search="toggleSearch"
+          @toggle-library="toggleLibrary"
+        />
 
-      <!-- Main Content Area -->
-      <div class="flex">
-        <!-- TOC Sidebar -->
-        <aside 
-          v-if="showToc"
-          class="fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300"
-          :class="themeClasses.bg"
-        >
-          <ChapterList @close="showToc = false" />
-        </aside>
+        <!-- Main Content Area -->
+        <div class="flex flex-1 overflow-hidden">
+          <!-- TOC Sidebar -->
+          <aside
+            v-if="showToc"
+            class="fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300"
+            :class="themeClasses.bg"
+          >
+            <ChapterList @close="showToc = false" />
+          </aside>
 
-        <!-- Book Content -->
-        <main 
-          class="flex-1 transition-all duration-300"
-          :class="{ 'ml-72': showToc }"
-        >
-          <BookViewer />
-        </main>
+          <!-- Book Content -->
+          <main
+            class="flex-1 transition-all duration-300 overflow-hidden"
+            :class="{ 'ml-72': showToc }"
+          >
+            <BookViewer />
+          </main>
 
-        <!-- Search Panel -->
-        <div 
-          v-if="showSearch"
-          class="fixed inset-y-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
-          :class="themeClasses.bg"
-        >
-          <SearchPanel @close="showSearch = false" />
-        </div>
+          <!-- Search Panel -->
+          <div
+            v-if="showSearch"
+            class="fixed inset-y-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
+            :class="themeClasses.bg"
+          >
+            <SearchPanel @close="showSearch = false" />
+          </div>
 
-        <!-- Library Panel -->
-        <div 
-          v-if="showLibrary"
-          class="fixed inset-y-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
-          :class="themeClasses.bg"
-        >
-          <LibraryPanel @close="showLibrary = false" />
+          <!-- Library Panel -->
+          <div
+            v-if="showLibrary"
+            class="fixed inset-y-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
+            :class="themeClasses.bg"
+          >
+            <LibraryPanel @close="showLibrary = false" />
+          </div>
         </div>
       </div>
     </template>
