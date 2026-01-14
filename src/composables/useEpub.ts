@@ -219,8 +219,20 @@ export function useEpub() {
       }
 
       chapterPath = chapterPath.replace(/^\//, '');
+      chapterPath = decodeURIComponent(chapterPath);
 
-      const zipFile = archiveZip.file(chapterPath);
+      let zipFile = archiveZip.file(chapterPath);
+      
+      if (!zipFile) {
+        const allFiles = archiveZip.files ? Object.keys(archiveZip.files) : [];
+        const matchingFile = allFiles.find(f => f.endsWith(chapterPath) || f.endsWith(`/${chapterPath}`));
+        
+        if (matchingFile) {
+          zipFile = archiveZip.file(matchingFile);
+          chapterPath = matchingFile;
+        }
+      }
+
       if (!zipFile) {
         console.warn(`Chapter file not found in archive: ${title} (${chapterPath})`);
         return `<p>Unable to load chapter: ${title}</p>`;
@@ -349,9 +361,20 @@ export function useEpub() {
       }
 
       const resolvedPath = await resolveImagePath(src, baseUrl, chapterPath);
-      const normalizedPath = resolvedPath.replace(/^\//, '');
+      let normalizedPath = resolvedPath.replace(/^\//, '');
+      normalizedPath = decodeURIComponent(normalizedPath);
 
-      const zipFile = archiveZip.file(normalizedPath);
+      let zipFile = archiveZip.file(normalizedPath);
+      
+      if (!zipFile) {
+        const allFiles = archiveZip.files ? Object.keys(archiveZip.files) : [];
+        const matchingFile = allFiles.find(f => f.endsWith(normalizedPath) || f.endsWith(`/${normalizedPath}`));
+        
+        if (matchingFile) {
+          zipFile = archiveZip.file(matchingFile);
+        }
+      }
+
       if (!zipFile) {
         console.warn(`Image not found in archive: ${normalizedPath} (from ${src})`);
         continue;
