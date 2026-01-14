@@ -232,7 +232,10 @@ function openLibraryFilePicker() {
                   class="relative rounded-xl overflow-hidden max-w-[200px]"
                 >
                   <div
-                    class="group relative bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-600"
+                    class="absolute inset-0 -z-10 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-1"
+                  />
+                  <div
+                    class="group relative z-10 cursor-pointer border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300 hover:-translate-y-1"
                     @click="openBook(book)"
                   >
                   <div class="aspect-[2/3] relative overflow-hidden">

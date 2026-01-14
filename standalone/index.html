@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EpubWebReader</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb@8.0.0/build/umd.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Home Screen -->
+    <div id="home-screen" class="home-screen">
+      <div class="container">
+        <header class="header">
+          <h1 class="title">EpubWebReader</h1>
+          <p class="subtitle">Your personal library in the cloud... wait, it's all local!</p>
+        </header>
+
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-content">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <h2 class="drop-title">Drop EPUB file here</h2>
+            <p class="drop-text">or click to browse</p>
+            <input type="file" id="file-input" accept=".epub,.EPUB" class="file-input">
+          </div>
+        </div>
+
+        <div class="library-section">
+          <div class="library-header">
+            <div class="library-info">
+              <div class="library-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="library-title">My Library</h2>
+                <p class="library-count" id="library-count">0 books</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="library-grid" class="library-grid">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reader Screen -->
+    <div id="reader-screen" class="reader-screen hidden">
+      <header class="controls">
+        <div class="controls-left">
+          <h1 class="book-title" id="book-title">Book Title</h1>
+          <div class="chapter-nav">
+            <button id="prev-chapter" class="nav-btn" title="Previous chapter">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <span class="chapter-number" id="chapter-number">1 / 1</span>
+            <button id="next-chapter" class="nav-btn" title="Next chapter">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="controls-right">
+          <div class="font-controls">
+            <button id="decrease-font" class="control-btn" title="Decrease font size">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+              </svg>
+            </button>
+            <span id="font-size-display" class="font-size">18px</span>
+            <button id="increase-font" class="control-btn" title="Increase font size">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+            </button>
+          </div>
+
+          <button id="theme-toggle" class="control-btn" title="Toggle theme">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </button>
+
+          <button id="wide-toggle" class="control-btn" title="Wide mode">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          </button>
+
+          <button id="toc-toggle" class="control-btn" title="Table of contents">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <button id="library-toggle" class="control-btn" title="Library">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </button>
+
+          <button id="home-btn" class="control-btn" title="Back to home">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="progress-bar">
+          <div id="progress" class="progress-fill"></div>
+        </div>
+      </header>
+
+      <div class="reader-main">
+        <aside id="toc-panel" class="toc-panel hidden">
+          <div class="panel-header">
+            <h2>Table of Contents</h2>
+            <button id="close-toc" class="close-btn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <nav id="toc-list" class="toc-list"></nav>
+        </aside>
+
+        <main id="book-content" class="book-content">
+          <div id="content-container" class="content-container">
+            <article id="chapter-content" class="chapter-content"></article>
+          </div>
+        </main>
+
+        <aside id="library-panel" class="library-panel hidden">
+          <div class="panel-header">
+            <h2>Library</h2>
+            <button id="close-library" class="close-btn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div id="library-panel-grid" class="library-panel-grid"></div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay hidden"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
