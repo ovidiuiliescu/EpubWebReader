@@ -12,7 +12,7 @@ export default defineConfig({
   },
   base: './',
   build: {
-    outDir: 'docs',
+    outDir: 'dist-standalone',
     sourcemap: false,
     target: 'es2015',
     rollupOptions: {

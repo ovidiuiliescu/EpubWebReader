@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = path.join(__dirname, '..', 'dist');
+const sourceDir = path.join(__dirname, '..', 'dist-standalone');
 const targetDir = path.join(__dirname, '..', 'standalone-compiled');
 const readmeSource = path.join(__dirname, '..', 'standalone', 'README.md');
 const readmeTarget = path.join(targetDir, 'README.md');

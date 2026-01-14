@@ -12,16 +12,13 @@ export default defineConfig({
   },
   base: '/EpubWebReader/',
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
     sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
           epub: ['epubjs'],
         },
-      },
-      resolve: {
-        dedupe: ['epubjs'],
       },
     },
   },
