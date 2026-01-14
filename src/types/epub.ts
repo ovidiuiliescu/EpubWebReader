@@ -40,6 +40,7 @@ export interface UserPreferences {
   fontFamily: 'georgia' | 'campote' | 'arial' | 'verdana';
   lineHeight: number;
   padding: number;
+  wideMode: boolean;
 }
 
 export interface SearchResult {

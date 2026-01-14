@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onUpdated, watch } from 'vue';
 import { useBookStore } from '@/stores/book';
 import { useSettingsStore } from '@/stores/settings';
 import { useTheme } from '@/composables/useTheme';
@@ -11,11 +11,14 @@ const { themeClasses } = useTheme();
 const contentRef = ref<HTMLDivElement | null>(null);
 let scrollTimer: number | null = null;
 
+const contentMaxWidth = computed(() => 
+  settingsStore.preferences.wideMode ? 'max-w-5xl' : 'max-w-2xl'
+);
+
 const contentStyle = computed(() => ({
   fontSize: `${settingsStore.preferences.fontSize}px`,
   fontFamily: getFontFamily(settingsStore.preferences.fontFamily),
   lineHeight: settingsStore.preferences.lineHeight,
-  padding: `${settingsStore.preferences.padding}px`,
 }));
 
 function getFontFamily(font: string): string {
@@ -48,21 +51,32 @@ function handleScroll() {
   }, 500);
 }
 
+function resetScroll() {
+  if (contentRef.value) {
+    contentRef.value.scrollTop = 0;
+  }
+}
+
 function renderCurrentChapter() {
   if (!contentRef.value || !bookStore.currentBook) return;
   
   const chapter = bookStore.chapters[bookStore.currentChapter];
   if (!chapter) {
-    contentRef.value.innerHTML = '<p class="text-center text-gray-500">No chapter content available.</p>';
+    contentRef.value.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No chapter content available.</p>';
+    resetScroll();
     return;
   }
   
-  contentRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500">Empty chapter.</p>';
-  contentRef.value.scrollTop = 0;
+  contentRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
+  resetScroll();
 }
 
 watch(() => bookStore.currentChapter, () => {
   renderCurrentChapter();
+});
+
+onUpdated(() => {
+  resetScroll();
 });
 
 onMounted(() => {
@@ -75,23 +89,21 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex justify-center">
+  <div class="flex justify-center h-full py-6 px-4">
     <div 
       ref="contentRef"
-      class="w-full max-w-3xl min-h-screen overflow-y-auto scrollbar-thin"
-      :class="[themeClasses.bg, themeClasses.text]"
+      class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+      :class="[contentMaxWidth, themeClasses.bg, themeClasses.text]"
       :style="contentStyle"
       @scroll="handleScroll"
     >
-      <div class="py-8">
-        <article 
-          class="prose prose-lg max-w-none"
-          :class="[
-            themeClasses.prose,
-            settingsStore.preferences.fontFamily === 'georgia' || settingsStore.preferences.fontFamily === 'campote' ? 'prose-serif' : 'prose-sans'
-          ]"
-        />
-      </div>
+      <article 
+        class="prose prose-lg max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg"
+        :class="[
+          themeClasses.prose,
+          settingsStore.preferences.fontFamily === 'georgia' || settingsStore.preferences.fontFamily === 'campote' ? 'prose-serif' : 'prose-sans'
+        ]"
+      />
     </div>
   </div>
 </template>
