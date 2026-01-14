@@ -117,7 +117,7 @@ function cycleTheme() {
         <!-- Wide mode toggle -->
         <button
           @click="settingsStore.toggleWideMode()"
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hidden sm:block"
           :title="settingsStore.preferences.wideMode ? 'Wide screen mode on' : 'Wide screen mode off'"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

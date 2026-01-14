@@ -327,21 +327,55 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex justify-center h-full py-6 px-4">
+  <div class="flex flex-col flex-1 h-full overflow-hidden">
     <div
       :key="bookStore.currentChapter"
       ref="containerRef"
-      class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scroll-smooth"
+      class="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scroll-smooth"
       :class="[contentWidth, themeClasses.bg, themeClasses.text]"
       @scroll="handleScroll"
     >
-      <div
+      <article
         ref="articleRef"
-        class="prose max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg"
+        class="prose max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg px-4 py-6 mx-auto"
         :class="themeClasses.prose"
         :style="contentStyle"
         @click="handleLinkClick"
       />
     </div>
+
+    <!-- Mobile Navigation Bar -->
+    <nav
+      class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:hidden"
+      :class="themeClasses.bg"
+    >
+      <button
+        @click="bookStore.prevChapter()"
+        :disabled="bookStore.currentChapter === 0"
+        class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        :class="themeClasses.text"
+      >
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-sm">Prev</span>
+      </button>
+
+      <span class="text-sm text-gray-500 dark:text-gray-400">
+        {{ bookStore.currentChapter + 1 }} / {{ bookStore.chapters.length }}
+      </span>
+
+      <button
+        @click="bookStore.nextChapter()"
+        :disabled="bookStore.currentChapter >= bookStore.chapters.length - 1"
+        class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        :class="themeClasses.text"
+      >
+        <span class="text-sm">Next</span>
+        <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </nav>
   </div>
 </template>
