@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useStorage } from '@vueuse/core';
-import { reactive, ref, watch } from 'vue';
+import { reactive, watch } from 'vue';
 import type { UserPreferences } from '@/types/epub';
 
 interface StoredPrefs {
@@ -9,6 +9,7 @@ interface StoredPrefs {
   fontFamily: 'georgia' | 'campote' | 'arial' | 'verdana';
   lineHeight: number;
   padding: number;
+  wideMode: boolean;
 }
 
 const DEFAULT_STORED_PREFS: StoredPrefs = {
@@ -17,11 +18,11 @@ const DEFAULT_STORED_PREFS: StoredPrefs = {
   fontFamily: 'georgia',
   lineHeight: 1.8,
   padding: 32,
+  wideMode: false,
 };
 
 export const useSettingsStore = defineStore('settings', () => {
   const storedPrefs = useStorage<StoredPrefs>('reader-preferences', DEFAULT_STORED_PREFS);
-  const wideMode = ref(false);
 
   const preferences = reactive<UserPreferences>({
     theme: storedPrefs.value.theme,
@@ -29,7 +30,7 @@ export const useSettingsStore = defineStore('settings', () => {
     fontFamily: storedPrefs.value.fontFamily,
     lineHeight: storedPrefs.value.lineHeight,
     padding: storedPrefs.value.padding,
-    wideMode: wideMode.value,
+    wideMode: storedPrefs.value.wideMode,
   });
 
   watch(
@@ -39,6 +40,7 @@ export const useSettingsStore = defineStore('settings', () => {
       fontFamily: preferences.fontFamily,
       lineHeight: preferences.lineHeight,
       padding: preferences.padding,
+      wideMode: preferences.wideMode,
     }),
     (newPrefs) => {
       storedPrefs.value = { ...newPrefs };
@@ -68,7 +70,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function toggleWideMode(): void {
     preferences.wideMode = !preferences.wideMode;
-    wideMode.value = preferences.wideMode;
   }
 
   function reset(): void {
@@ -77,8 +78,7 @@ export const useSettingsStore = defineStore('settings', () => {
     preferences.fontFamily = DEFAULT_STORED_PREFS.fontFamily;
     preferences.lineHeight = DEFAULT_STORED_PREFS.lineHeight;
     preferences.padding = DEFAULT_STORED_PREFS.padding;
-    preferences.wideMode = false;
-    wideMode.value = false;
+    preferences.wideMode = DEFAULT_STORED_PREFS.wideMode;
   }
 
   return {
