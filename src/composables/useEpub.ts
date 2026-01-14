@@ -72,19 +72,22 @@ async function getEpub(): Promise<EpubFactory> {
   return ePub;
 }
 
+let currentBook: any = null;
+let currentBaseUrl: string | undefined;
+
 export function useEpub() {
   async function loadEpub(file: File, existingBookId?: string): Promise<EpubBook> {
     const ePubFactory = await getEpub();
     const arrayBuffer = await file.arrayBuffer();
-    const book = ePubFactory(arrayBuffer);
+    currentBook = ePubFactory(arrayBuffer);
 
-    await book.ready;
+    await currentBook.ready;
 
-    const metadata = await book.loaded.metadata;
-    const navigation = await book.loaded.navigation;
-    
+    const metadata = await currentBook.loaded.metadata;
+    const navigation = await currentBook.loaded.navigation;
+
     const bookId = existingBookId || await generateBookId(file);
-    
+
     const bookMetadata: BookMetadata = {
       id: bookId,
       title: metadata.title || 'Untitled',
@@ -100,26 +103,25 @@ export function useEpub() {
       currentChapter: 0,
     };
 
-    const coverBlob = await loadCover(book);
+    const coverBlob = await loadCover(currentBook);
     const toc = await loadToc(navigation);
 
-    let baseUrl: string | undefined;
     try {
-      const rootfile = await book.loaded.rootfile;
+      const rootfile = await currentBook.loaded.rootfile;
       if (rootfile && typeof rootfile === 'object') {
         const rootfileObj = rootfile as Record<string, unknown>;
         const rootPath = (rootfileObj.rootfileUrl || rootfileObj.path || rootfileObj.rootPath) as string | undefined;
         if (rootPath) {
           const lastSlash = rootPath.lastIndexOf('/');
-          baseUrl = lastSlash >= 0 ? rootPath.substring(0, lastSlash + 1) : '';
+          currentBaseUrl = lastSlash >= 0 ? rootPath.substring(0, lastSlash + 1) : '';
         }
       }
     } catch {
       console.warn('Unable to determine base URL from book packaging');
+      currentBaseUrl = undefined;
     }
 
-    const chapters = await loadChapters(book, baseUrl, toc);
-
+    const chapters = await loadChapters(currentBook, currentBaseUrl, toc);
 
     return {
       metadata: bookMetadata,
@@ -127,6 +129,67 @@ export function useEpub() {
       toc,
       coverBlob: coverBlob || undefined,
     };
+  }
+
+  async function loadChapterByHref(href: string): Promise<Chapter | null> {
+    if (!currentBook) return null;
+
+    try {
+      let chapterPath = href;
+      if (currentBaseUrl) {
+        try {
+          chapterPath = new URL(href, `http://localhost/${currentBaseUrl}`).pathname;
+        } catch {
+          chapterPath = href;
+        }
+      }
+
+      chapterPath = chapterPath.replace(/^\//, '');
+      chapterPath = decodeURIComponent(chapterPath);
+
+      const content = await loadChapterContent(currentBook, currentBaseUrl, href, href);
+
+      const title = await getTitleFromChapter(currentBook, chapterPath);
+
+      return {
+        id: chapterPath,
+        href: href,
+        title: title || chapterPath.split('/').pop() || href,
+        level: 0,
+        content,
+      };
+    } catch (err) {
+      console.warn(`Failed to load chapter: ${href}`, err);
+      return null;
+    }
+  }
+
+  async function getTitleFromChapter(book: any, chapterPath: string): Promise<string> {
+    try {
+      const archiveZip = (book as any).archive?.zip;
+      if (!archiveZip) return '';
+
+      let zipFile = archiveZip.file(chapterPath);
+
+      if (!zipFile) {
+        const allFiles = archiveZip.files ? Object.keys(archiveZip.files) : [];
+        const matchingFile = allFiles.find(f => f.endsWith(chapterPath) || f.endsWith(`/${chapterPath}`));
+
+        if (matchingFile) {
+          zipFile = archiveZip.file(matchingFile);
+        }
+      }
+
+      if (!zipFile) return '';
+
+      const xhtml = await zipFile.async('string');
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xhtml, 'application/xhtml+xml');
+      const titleEl = doc.querySelector('title');
+      return titleEl?.textContent || '';
+    } catch {
+      return '';
+    }
   }
 
   async function loadCover(book: any): Promise<Blob | null> {
@@ -404,6 +467,7 @@ export function useEpub() {
 
   return {
     loadEpub,
+    loadChapterByHref,
   };
 }
 

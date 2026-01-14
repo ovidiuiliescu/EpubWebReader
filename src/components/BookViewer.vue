@@ -3,6 +3,7 @@ import { ref, computed, onUnmounted, nextTick, watchEffect, watch } from 'vue';
 import { useBookStore } from '@/stores/book';
 import { useSettingsStore } from '@/stores/settings';
 import { useTheme } from '@/composables/useTheme';
+import { epub } from '@/composables/useEpub';
 
 const bookStore = useBookStore();
 const settingsStore = useSettingsStore();
@@ -57,6 +58,84 @@ function handleScroll() {
       timestamp: new Date(),
     });
   }, 500);
+}
+
+async function handleLinkClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  const link = target.closest('a') as HTMLAnchorElement | null;
+
+  if (!link) return;
+
+  const href = link.getAttribute('href');
+  if (!href) return;
+
+  if (href.startsWith('#')) {
+    event.preventDefault();
+    const elementId = href.substring(1);
+    nextTick(() => {
+      const targetElement = articleRef.value?.querySelector(`#${elementId}`);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    return;
+  }
+
+  if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+    return;
+  }
+
+  event.preventDefault();
+
+  let chapterPath = href;
+  let fragmentId = '';
+  const fragmentIndex = href.indexOf('#');
+  if (fragmentIndex >= 0) {
+    chapterPath = href.substring(0, fragmentIndex);
+    fragmentId = href.substring(fragmentIndex + 1);
+  }
+
+  chapterPath = decodeURIComponent(chapterPath).replace(/^\/+/, '');
+
+  let chapterIndex = bookStore.chapters.findIndex(chapter => {
+    const chapterHref = decodeURIComponent(chapter.href).replace(/^\/+/, '');
+    if (chapterHref === chapterPath) return true;
+    if (chapterHref.endsWith(`/${chapterPath}`) || chapterHref.endsWith(`\\${chapterPath}`)) return true;
+    if (chapterPath.endsWith(`/${chapterHref}`) || chapterPath.endsWith(`\\${chapterHref}`)) return true;
+    const chapterName = chapterHref.split('/').pop() || chapterHref;
+    const linkName = chapterPath.split('/').pop() || chapterPath;
+    return chapterName === linkName || chapterName.replace(/\.[^/.]+$/, '') === linkName.replace(/\.[^/.]+$/, '');
+  });
+
+  if (chapterIndex >= 0) {
+    bookStore.setChapter(chapterIndex);
+
+    if (fragmentId) {
+      nextTick(() => {
+        const targetElement = articleRef.value?.querySelector(`#${fragmentId}`);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+    return;
+  }
+
+  const newChapter = await epub.loadChapterByHref(href);
+  if (newChapter) {
+    bookStore.addChapter(newChapter);
+    chapterIndex = bookStore.chapters.length - 1;
+    bookStore.setChapter(chapterIndex);
+
+    if (fragmentId) {
+      nextTick(() => {
+        const targetElement = articleRef.value?.querySelector(`#${fragmentId}`);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+  }
 }
 
 function renderCurrentChapter() {
@@ -261,6 +340,7 @@ onUnmounted(() => {
         class="prose max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg"
         :class="themeClasses.prose"
         :style="contentStyle"
+        @click="handleLinkClick"
       />
     </div>
   </div>

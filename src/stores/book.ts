@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { EpubBook, ReadingProgress, SearchHighlight } from '@/types/epub';
+import type { EpubBook, ReadingProgress, SearchHighlight, Chapter } from '@/types/epub';
 import { useLibraryStore } from './library';
 
 export const useBookStore = defineStore('book', () => {
@@ -108,6 +108,12 @@ export const useBookStore = defineStore('book', () => {
     searchHighlight.value = highlight;
   }
 
+  function addChapter(chapter: Chapter): void {
+    if (currentBook.value && currentBook.value.chapters) {
+      currentBook.value.chapters.push(chapter);
+    }
+  }
+
   return {
     currentBook,
     currentChapter,
@@ -126,5 +132,6 @@ export const useBookStore = defineStore('book', () => {
     updateProgress,
     clearBook,
     setSearchHighlight,
+    addChapter,
   };
 });
