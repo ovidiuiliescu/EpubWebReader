@@ -331,7 +331,7 @@ onUnmounted(() => {
     <div
       :key="bookStore.currentChapter"
       ref="containerRef"
-      class="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scroll-smooth"
+      class="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scroll-smooth mx-auto"
       :class="[contentWidth, themeClasses.bg, themeClasses.text]"
       @scroll="handleScroll"
     >
