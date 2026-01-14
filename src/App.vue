@@ -93,7 +93,7 @@ function closePanels() {
           <!-- TOC Sidebar -->
           <aside
             v-if="showToc"
-            class="fixed top-16 bottom-0 left-0 z-50 w-72 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300"
+            class="fixed top-16 bottom-0 right-0 z-50 w-72 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300"
             :class="themeClasses.bg"
           >
             <ChapterList @close="showToc = false" />
@@ -101,10 +101,10 @@ function closePanels() {
 
           <!-- Book Content -->
           <main
-            class="flex-1 transition-all duration-300 overflow-hidden"
-            :class="{ 'ml-72': showToc, 'mr-80': showSearch || showLibrary }"
+            class="flex-1 transition-all duration-300 overflow-hidden flex justify-center"
+            :class="{ 'mr-72': showToc, 'mr-80': showSearch || showLibrary }"
           >
-            <BookViewer />
+            <BookViewer class="w-full" />
           </main>
 
           <!-- Search Panel -->
