@@ -8,11 +8,11 @@ const bookStore = useBookStore();
 const settingsStore = useSettingsStore();
 const { themeClasses } = useTheme();
 
-const contentRef = ref<HTMLDivElement | null>(null);
+const containerRef = ref<HTMLDivElement | null>(null);
 let scrollTimer: number | null = null;
 
-const contentMaxWidth = computed(() => 
-  settingsStore.preferences.wideMode ? 'max-w-5xl' : 'max-w-2xl'
+const contentWidth = computed(() => 
+  settingsStore.preferences.wideMode ? 'max-w-full' : 'max-w-2xl'
 );
 
 const contentStyle = computed(() => ({
@@ -34,10 +34,10 @@ function getFontFamily(font: string): string {
 function handleScroll() {
   if (scrollTimer) clearTimeout(scrollTimer);
   scrollTimer = window.setTimeout(() => {
-    if (!contentRef.value || !bookStore.currentBook) return;
+    if (!containerRef.value || !bookStore.currentBook) return;
     
-    const scrollTop = contentRef.value.scrollTop;
-    const scrollHeight = contentRef.value.scrollHeight - contentRef.value.clientHeight;
+    const scrollTop = containerRef.value.scrollTop;
+    const scrollHeight = containerRef.value.scrollHeight - containerRef.value.clientHeight;
     const percentage = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
     
     bookStore.updateProgress({
@@ -51,36 +51,38 @@ function handleScroll() {
   }, 500);
 }
 
-function resetScroll() {
-  if (contentRef.value) {
-    contentRef.value.scrollTop = 0;
+function forceScrollTop() {
+  if (containerRef.value) {
+    containerRef.value.scrollTop = 0;
   }
 }
 
 function renderCurrentChapter() {
-  if (!contentRef.value || !bookStore.currentBook) return;
+  if (!containerRef.value || !bookStore.currentBook) return;
   
   const chapter = bookStore.chapters[bookStore.currentChapter];
   if (!chapter) {
-    contentRef.value.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No chapter content available.</p>';
-    resetScroll();
+    containerRef.value.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No chapter content available.</p>';
     return;
   }
   
-  contentRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
-  resetScroll();
+  containerRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
 }
 
 watch(() => bookStore.currentChapter, () => {
   renderCurrentChapter();
+  forceScrollTop();
 });
 
 onUpdated(() => {
-  resetScroll();
+  forceScrollTop();
 });
 
 onMounted(() => {
   renderCurrentChapter();
+  setTimeout(forceScrollTop, 100);
+  setTimeout(forceScrollTop, 300);
+  setTimeout(forceScrollTop, 500);
 });
 
 onUnmounted(() => {
@@ -91,9 +93,9 @@ onUnmounted(() => {
 <template>
   <div class="flex justify-center h-full py-6 px-4">
     <div 
-      ref="contentRef"
+      ref="containerRef"
       class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
-      :class="[contentMaxWidth, themeClasses.bg, themeClasses.text]"
+      :class="[contentWidth, themeClasses.bg, themeClasses.text]"
       :style="contentStyle"
       @scroll="handleScroll"
     >
