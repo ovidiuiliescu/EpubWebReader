@@ -1,7 +1,6 @@
 node_modules/
 dist/
 dist-ssr/
-standalone-compiled/
 *.local
 .env
 .env.local

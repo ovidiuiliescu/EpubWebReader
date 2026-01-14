@@ -5,6 +5,8 @@ const sourceDir = path.join(__dirname, '..', 'dist');
 const targetDir = path.join(__dirname, '..', 'standalone-compiled');
 const readmeSource = path.join(__dirname, '..', 'standalone', 'README.md');
 const readmeTarget = path.join(targetDir, 'README.md');
+const customHtmlSource = path.join(__dirname, '..', 'index-standalone.html');
+const customHtmlTarget = path.join(targetDir, 'index.html');
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
@@ -35,11 +37,17 @@ ensureDir(targetDir);
 
 if (fs.existsSync(sourceDir)) {
   fs.readdirSync(sourceDir).forEach(file => {
+    if (file === 'index.html' || file === 'assets') return;
     const srcPath = path.join(sourceDir, file);
     const destPath = path.join(targetDir, file);
     copyRecursive(srcPath, destPath);
   });
   console.log('✓ Copied build files to standalone-compiled/');
+  
+  if (fs.existsSync(customHtmlSource)) {
+    fs.copyFileSync(customHtmlSource, customHtmlTarget);
+    console.log('✓ Using standalone HTML (non-module for file:// support)');
+  }
 } else {
   console.error('✗ dist/ directory not found. Run "npm run build" first.');
   process.exit(1);
