@@ -2,199 +2,186 @@
 
   # 📚 EpubWebReader
 
-  **A beautiful, fully-featured EPUB reader built for the web**
+  **A clean, functional EPUB reader for the web - 100% AI-generated**
 
   [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-121013?style=flat&logo=github)](https://ovidiuiliescu.github.io/EpubWebReader)
   [![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?style=flat&logo=vue.js)](https://vuejs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
 
-  [Live Demo](https://ovidiuiliescu.github.io/EpubWebReader) · [Report Bug](https://github.com/ovidiuiliescu/EpubWebReader/issues)
+  [Check it out live](https://ovidiuiliescu.github.io/EpubWebReader)
 
 </div>
 
 ---
 
-## ✨ Vibecoded with AI
+## 💡 The Story
 
-This project is proudly **vibecoded** - primarily built using modern AI coding assistants:
-
-- **[opencode](https://opencode.ai)** - Main development agent handling architecture, implementation, and refinement
-- **[MinMax M2.1](https://minimax.ai)** - Contributing to feature design and implementation
-- **[GLM 4.7](https://glm.ai)** - Assisting with code generation and optimization
-
-The combination of these AI agents enables rapid, high-quality development while maintaining clean, maintainable code.
+I wanted to build an EPUB reader for the web. No servers, just pure browser magic. So I told an AI what I wanted, and this is what it made. Every single line of code, every bit of documentation, this README included - all prompts, babyyy! No human hands have touched any of it.
 
 ---
 
-## 🎯 Features
+## 🤖 The AI Team
 
-### Core Functionality
-- **Drag & Drop Upload** - Drop EPUB files directly into the reader
-- **Beautiful Rendering** - Clean typography and layout optimized for reading
-- **Chapter Navigation** - Hierarchical table of contents with quick-jump functionality
-- **Reading Progress** - Track your progress within chapters and across the entire book
-- **Persistent Library** - Cache up to 10 books in IndexedDB with LRU eviction
+This project was built by a squad of AI coding agents:
 
-### Customization
-- **4 Reading Themes** - Light, Dark, Sepia, and Warm modes
-- **Font Controls** - Adjustable font size (12px-32px) and font family selection
-- **Reading Comfort** - Line height and padding adjustments
+- **[opencode](https://opencode.ai)** - Lead developer. Handled most of the architecture, implementation, and refactoring.
+- **[MinMax M2.1](https://minimax.ai)** - Contributed to features and implementation details.
+- **[GLM 4.7](https://glm.ai)** - Helped with code generation and optimization.
 
-### Advanced Features
-- **Full-Text Search** - Search across all chapters with highlighted results
-- **Keyboard Shortcuts** - Navigate and control the reader efficiently
-- **Auto-Save Progress** - Reading position and preferences saved automatically
-- **Offline Ready** - Works completely offline after initial load
+I just described what I wanted, they made it happen. Pretty wild, right?
 
-### Accessibility
+---
+
+## 🎯 What It Does
+
+### The Basics
+- Drag and drop EPUB files directly into the browser
+- Read books with clean, comfortable typography
+- Navigate chapters with a table of contents
+- Track your reading progress
+- Keep a library of up to 10 books (stored locally in your browser)
+
+### Personalization
+- 4 reading themes: Light, Dark, Sepia, Warm
+- Font size controls (12px - 32px)
+- Multiple font families to choose from
+- Adjust line height and spacing to your liking
+
+### Nice-to-haves
+- Full-text search across all chapters
+- Keyboard shortcuts for power users
+- Auto-saves your reading position
+- Works offline once it's loaded
+
+### It's accessible too
 - WCAG 2.1 AA compliant
 - Full keyboard navigation
 - Screen reader support
-- Reduced motion preferences
-- ARIA labels on all interactive elements
+- Respectful of reduced motion preferences
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ What It's Built With
 
-| Technology | Purpose |
-|------------|---------|
-| **Vue 3** | Reactive UI framework with Composition API |
-| **TypeScript** | Type-safe development |
-| **Pinia** | State management |
-| **Tailwind CSS** | Utility-first styling |
-| **epub.js** | EPUB parsing and rendering |
-| **IDB** | IndexedDB wrapper for storage |
-| **VueUse** | Composition utilities |
-| **Vite** | Fast build tool and dev server |
+| Tech | Why |
+|------|-----|
+| Vue 3 | Reactivity, components, composition API |
+| TypeScript | Type safety, better DX |
+| Pinia | State management |
+| Tailwind CSS | Styling without writing CSS |
+| epub.js | Parses and renders EPUBs |
+| IDB | Wrapper for IndexedDB storage |
+| VueUse | Handy composition utilities |
+| Vite | Fast dev server and bundler |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Running It Yourself
 
-### Prerequisites
-
-- Node.js 18+ 
-- npm, yarn, or pnpm
-
-### Installation
+You'll need Node.js 18+.
 
 ```bash
-# Clone the repository
+# Clone it
 git clone https://github.com/ovidiuiliescu/EpubWebReader.git
 cd EpubWebReader
 
 # Install dependencies
 npm install
-```
 
-### Development
-
-```bash
-# Start development server
+# Start dev server
 npm run dev
-
 # Open http://localhost:5173
-```
 
-### Build
-
-```bash
-# Build for production (GitHub Pages)
+# Build for production
 npm run build
 
-# Build standalone package (works offline with relative paths)
+# Build standalone version (works offline)
 npm run build:standalone
-```
-
-### Preview Production Build
-
-```bash
-npm run preview
 ```
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `+` / `=` | Increase font size |
-| `-` | Decrease font size |
-| `T` | Toggle theme |
-| `Ctrl+F` / `Cmd+F` | Open search |
-| `Esc` | Close panels/modals |
+| Key | What it does |
+|-----|--------------|
+| `+` / `=` | Bigger font |
+| `-` | Smaller font |
+| `T` | Switch themes |
+| `Ctrl+F` / `Cmd+F` | Search |
+| `Esc` | Close panels |
 | `←` | Previous chapter |
 | `→` | Next chapter |
 
 ---
 
-## 📁 Project Structure
+## 📂 How It's Organized
 
 ```
 EpubWebReader/
 ├── src/
 │   ├── components/       # Vue components
-│   ├── composables/      # Reusable composition functions
+│   ├── composables/      # Reusable logic
 │   ├── stores/           # Pinia stores
-│   ├── types/            # TypeScript definitions
+│   ├── types/            # TypeScript types
 │   └── styles/           # Global styles
 ├── public/               # Static assets
-├── docs/                 # GitHub Pages build output
-├── dist/                 # Production build output
-├── AGENTS.md            # AI agent development guidelines
-└── requirements.md      # Detailed requirements
+├── docs/                 # GitHub Pages build
+├── dist/                 # Production build
+├── AGENTS.md            # Guidelines for AI agents
+└── requirements.md      # What I originally asked for
 ```
 
 ---
 
 ## 🌐 Deployment
 
-This project is designed for **static hosting** with zero server requirements:
+This is meant to be hosted statically - no server needed:
 
-- **GitHub Pages** - Default deployment target (already configured)
-- **Netlify** - Drag and drop the `dist/` folder
-- **Vercel** - Connect your GitHub repository
-- **Any static host** - Upload the built files
+- **GitHub Pages** - Already configured, just push and go
+- **Netlify** - Drag the `dist/` folder
+- **Vercel** - Connect your repo
+- **Any static host** - Upload the files
 
-The standalone build (`npm run build:standalone`) creates a completely offline-capable version with relative asset paths.
+The `npm run build:standalone` command creates a version that works completely offline with relative paths.
 
 ---
 
-## 🤝 Contributing
+## 🤝 Want to Contribute?
 
-Contributions are welcome! Please follow these guidelines:
+Sure! Here's how:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the [AGENTS.md](./AGENTS.md) guidelines
-4. Run linting and type checking (`npm run lint && npm run typecheck`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Run `npm run lint && npm run typecheck`
+5. Commit with a clear message
+6. Push and open a Pull Request
+
+Check out [AGENTS.md](./AGENTS.md) if you're using AI agents too.
 
 ---
 
 ## 📝 License
 
-This project is open source and available under the MIT License.
+MIT - go wild.
 
 ---
 
-## 🙏 Acknowledgments
+## 🙏 Shoutouts
 
-- [epub.js](https://github.com/futurepress/epub.js) - Core EPUB parsing library
-- [Vue.js](https://vuejs.org/) - The progressive JavaScript framework
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- All AI tools that made this project possible
+- [epub.js](https://github.com/futurepress/epub.js) - Does all the heavy lifting for EPUB parsing
+- [Vue.js](https://vuejs.org/) - Makes building UIs actually fun
+- [Tailwind CSS](https://tailwindcss.com/) - CSS that doesn't make you hate yourself
+- The AI tools that made this entire project possible
 
 ---
 
 <div align="center">
 
-  Made with ❤️ using AI
+  Made with ❤️ by AI prompts only
 
-  [⬆ Back to Top](#-epubwebreader)
+  [⬆ Back to top](#-epubwebreader)
 
 </div>
