@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useBookStore } from '@/stores/book';
-import { useLibraryStore } from '@/stores/library';
-import DropZone from '@/components/DropZone.vue';
+import HomeScreen from '@/components/HomeScreen.vue';
 import BookViewer from '@/components/BookViewer.vue';
 import Controls from '@/components/Controls.vue';
 import ChapterList from '@/components/ChapterList.vue';
@@ -11,21 +10,15 @@ import LibraryPanel from '@/components/LibraryPanel.vue';
 import { useTheme } from '@/composables/useTheme';
 
 const bookStore = useBookStore();
-const libraryStore = useLibraryStore();
 const { themeClasses } = useTheme();
 
 const showToc = ref(false);
 const showSearch = ref(false);
 const showLibrary = ref(false);
 
-onMounted(() => {
-  libraryStore.init();
-});
-
-function handleFileDrop(file: File) {
-  if (file.name.endsWith('.epub') || file.name.endsWith('. EPUB')) {
-    console.log('Loading file:', file.name);
-    bookStore.loadBook(file).catch(err => {
+function handleFileDrop(file: File, shouldCache: boolean = true, existingBookId?: string) {
+  if (file.name.endsWith('.epub') || file.name.endsWith('.EPUB')) {
+    bookStore.loadBook(file, shouldCache, existingBookId).catch(err => {
       console.error('Failed to load book:', err);
     });
   } else {
@@ -59,7 +52,7 @@ function closePanels() {
 </script>
 
 <template>
-  <div 
+  <div
     :class="[
       'min-h-screen transition-colors duration-300',
       themeClasses.bg,
@@ -67,13 +60,13 @@ function closePanels() {
     ]"
   >
     <!-- No Book Loaded State -->
-    <DropZone 
+    <HomeScreen
       v-if="!bookStore.currentBook"
-      @drop="handleFileDrop"
+      @select-book="handleFileDrop"
     />
 
     <!-- Loading State -->
-    <div 
+    <div
       v-else-if="bookStore.isLoading"
       class="flex flex-col items-center justify-center min-h-screen"
       :class="[themeClasses.bg, themeClasses.text]"

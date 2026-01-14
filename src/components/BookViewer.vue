@@ -11,6 +11,8 @@ const { themeClasses } = useTheme();
 const containerRef = ref<HTMLDivElement | null>(null);
 const articleRef = ref<HTMLDivElement | null>(null);
 let scrollTimer: number | null = null;
+let settingsTimer: number | null = null;
+let hasRestoredScrollPosition = false;
 
 const contentWidth = computed(() => 
   settingsStore.preferences.wideMode ? 'max-w-full' : 'max-w-2xl'
@@ -34,19 +36,24 @@ function getFontFamily(font: string): string {
 
 function handleScroll() {
   if (scrollTimer) clearTimeout(scrollTimer);
-  scrollTimer = window.setTimeout(() => {
+  scrollTimer = window.setTimeout(async () => {
     if (!containerRef.value || !bookStore.currentBook) return;
-    
+
     const scrollTop = containerRef.value.scrollTop;
     const scrollHeight = containerRef.value.scrollHeight - containerRef.value.clientHeight;
-    const percentage = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    const currentChapterProgress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+    const totalChapters = bookStore.chapters.length;
     
-    bookStore.updateProgress({
+    const overallProgress = totalChapters > 0 
+      ? ((bookStore.currentChapter + currentChapterProgress) / totalChapters) * 100 
+      : 0;
+
+    await bookStore.updateProgress({
       bookId: bookStore.metadata!.id,
       cfi: '',
       scrollPosition: scrollTop,
       chapterIndex: bookStore.currentChapter,
-      percentage: Math.round(percentage),
+      percentage: Math.round(overallProgress),
       timestamp: new Date(),
     });
   }, 500);
@@ -68,6 +75,11 @@ function renderCurrentChapter() {
   }
 
   articleRef.value.innerHTML = content;
+
+  if (!hasRestoredScrollPosition && bookStore.currentScrollPosition > 0) {
+    containerRef.value!.scrollTop = bookStore.currentScrollPosition;
+    hasRestoredScrollPosition = true;
+  }
 
   if (bookStore.searchHighlight && bookStore.searchHighlight.chapterIndex === bookStore.currentChapter) {
     nextTick(() => scrollToFirstHighlight());
@@ -174,8 +186,64 @@ watch(
   }
 );
 
+watch(
+  () => bookStore.currentChapter,
+  async () => {
+    if (!bookStore.currentBook) return;
+    const totalChapters = bookStore.chapters.length;
+    const overallProgress = totalChapters > 0 
+      ? ((bookStore.currentChapter / totalChapters) * 100)
+      : 0;
+
+    await bookStore.updateProgress({
+      bookId: bookStore.metadata!.id,
+      cfi: '',
+      scrollPosition: 0,
+      chapterIndex: bookStore.currentChapter,
+      percentage: Math.round(overallProgress),
+      timestamp: new Date(),
+    });
+  }
+);
+
+watch(
+  () => [
+    settingsStore.preferences.wideMode,
+    settingsStore.preferences.fontSize,
+    settingsStore.preferences.fontFamily,
+    settingsStore.preferences.lineHeight,
+  ],
+  () => {
+    if (settingsTimer) clearTimeout(settingsTimer);
+    settingsTimer = window.setTimeout(async () => {
+      if (!containerRef.value || !bookStore.currentBook) return;
+      
+      await nextTick();
+      
+      const scrollTop = containerRef.value.scrollTop;
+      const scrollHeight = containerRef.value.scrollHeight - containerRef.value.clientHeight;
+      const currentChapterProgress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+      const totalChapters = bookStore.chapters.length;
+      
+      const overallProgress = totalChapters > 0 
+        ? ((bookStore.currentChapter + currentChapterProgress) / totalChapters) * 100 
+        : 0;
+
+      await bookStore.updateProgress({
+        bookId: bookStore.metadata!.id,
+        cfi: '',
+        scrollPosition: scrollTop,
+        chapterIndex: bookStore.currentChapter,
+        percentage: Math.round(overallProgress),
+        timestamp: new Date(),
+      });
+    }, 500);
+  }
+);
+
 onUnmounted(() => {
   if (scrollTimer) clearTimeout(scrollTimer);
+  if (settingsTimer) clearTimeout(settingsTimer);
 });
 </script>
 

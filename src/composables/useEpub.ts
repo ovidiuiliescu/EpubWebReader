@@ -73,7 +73,7 @@ async function getEpub(): Promise<EpubFactory> {
 }
 
 export function useEpub() {
-  async function loadEpub(file: File): Promise<EpubBook> {
+  async function loadEpub(file: File, existingBookId?: string): Promise<EpubBook> {
     const ePubFactory = await getEpub();
     const arrayBuffer = await file.arrayBuffer();
     const book = ePubFactory(arrayBuffer);
@@ -83,7 +83,7 @@ export function useEpub() {
     const metadata = await book.loaded.metadata;
     const navigation = await book.loaded.navigation;
     
-    const bookId = await generateBookId(file);
+    const bookId = existingBookId || await generateBookId(file);
     
     const bookMetadata: BookMetadata = {
       id: bookId,

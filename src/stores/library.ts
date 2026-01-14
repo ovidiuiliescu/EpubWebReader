@@ -4,14 +4,21 @@ import { openDB, type IDBPDatabase } from 'idb';
 import type { BookMetadata } from '@/types/epub';
 
 const DB_NAME = 'epub-web-reader';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const MAX_CACHED_BOOKS = 10;
 
 interface CachedBook {
   id: string;
   metadata: BookMetadata;
   epubBlob: Blob;
+  coverImage?: Blob;
   addedAt: Date;
+  readingProgress?: {
+    chapterIndex: number;
+    scrollPosition: number;
+    percentage: number;
+    timestamp: Date;
+  };
 }
 
 export const useLibraryStore = defineStore('library', () => {
@@ -44,23 +51,70 @@ export const useLibraryStore = defineStore('library', () => {
       .map(book => book.metadata);
   }
 
-  async function cacheBook(metadata: BookMetadata, epubBlob: Blob): Promise<void> {
+  async function cacheBook(
+    metadata: BookMetadata,
+    epubBlob: Blob,
+    coverImage?: Blob
+  ): Promise<void> {
     if (!db.value) return;
 
     const existing = await db.value.get('books', metadata.id);
     if (existing) {
-      await db.value.put('books', { ...existing, metadata });
+      await db.value.put('books', {
+        ...existing,
+        metadata,
+        coverImage,
+      });
     } else {
       await checkCacheLimit();
       await db.value.add('books', {
         id: metadata.id,
         metadata,
         epubBlob,
+        coverImage,
         addedAt: new Date(),
       });
     }
 
     await loadBooks();
+  }
+
+  async function updateReadingProgress(
+    bookId: string,
+    chapterIndex: number,
+    scrollPosition: number,
+    percentage: number
+  ): Promise<void> {
+    if (!db.value) return;
+
+    const existing = await db.value.get('books', bookId);
+    if (existing) {
+      existing.metadata = {
+        ...existing.metadata,
+        progress: percentage,
+        currentChapter: chapterIndex,
+        lastReadAt: new Date(),
+      };
+      existing.readingProgress = {
+        chapterIndex,
+        scrollPosition,
+        percentage,
+        timestamp: new Date(),
+      };
+      await db.value.put('books', existing);
+      await loadBooks();
+    }
+  }
+
+  async function getReadingProgress(bookId: string): Promise<{
+    chapterIndex: number;
+    scrollPosition: number;
+    percentage: number;
+  } | null> {
+    if (!db.value) return null;
+
+    const book = await db.value.get('books', bookId);
+    return book?.readingProgress || null;
   }
 
   async function removeBook(id: string): Promise<void> {
@@ -73,6 +127,16 @@ export const useLibraryStore = defineStore('library', () => {
     if (!db.value) return null;
     const book = await db.value.get('books', id);
     return book?.epubBlob || null;
+  }
+
+  async function getCoverImage(id: string): Promise<Blob | null> {
+    if (!db.value) return null;
+    const book = await db.value.get('books', id);
+    return book?.coverImage || null;
+  }
+
+  async function exportBook(id: string): Promise<Blob | null> {
+    return getBookBlob(id);
   }
 
   async function checkCacheLimit(): Promise<void> {
@@ -101,6 +165,10 @@ export const useLibraryStore = defineStore('library', () => {
     cacheBook,
     removeBook,
     getBookBlob,
+    getCoverImage,
+    exportBook,
     clearLibrary,
+    updateReadingProgress,
+    getReadingProgress,
   };
 });

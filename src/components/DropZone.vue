@@ -5,6 +5,10 @@ const emit = defineEmits<{
   drop: [file: File];
 }>();
 
+defineProps<{
+  compact?: boolean;
+}>();
+
 const isDragging = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -41,16 +45,18 @@ function openFilePicker() {
 
 <template>
   <div
-    class="flex flex-col items-center justify-center min-h-screen p-8"
+    class="flex flex-col items-center justify-center"
+    :class="compact ? 'flex-1 min-h-0' : 'min-h-screen'"
     @dragover="handleDragOver"
     @dragleave="handleDragLeave"
     @drop="handleDrop"
   >
     <div
-      class="w-full max-w-2xl p-16 text-center border-4 border-dashed rounded-3xl transition-all duration-300 cursor-pointer"
+      class="w-full text-center border-4 border-dashed rounded-3xl transition-all duration-300 cursor-pointer"
       :class="[
-        isDragging 
-          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-105' 
+        compact ? 'p-12' : 'p-16 max-w-2xl',
+        isDragging
+          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-105'
           : 'border-gray-300 dark:border-gray-600 hover:border-indigo-400'
       ]"
       @click="openFilePicker"
@@ -59,9 +65,10 @@ function openFilePicker() {
       role="button"
       :aria-label="'Drop EPUB file or click to browse'"
     >
-      <div class="mb-8">
+      <div :class="compact ? 'mb-6' : 'mb-8'">
         <svg
-          class="w-24 h-24 mx-auto text-gray-400"
+          class="mx-auto text-gray-400"
+          :class="compact ? 'w-20 h-20' : 'w-24 h-24'"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -75,13 +82,25 @@ function openFilePicker() {
         </svg>
       </div>
 
-      <h1 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-        EpubWebReader
-      </h1>
-      
-      <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
-        Drag and drop your EPUB file here, or click to browse
-      </p>
+      <template v-if="!compact">
+        <h1 class="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+          EpubWebReader
+        </h1>
+
+        <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
+          Drag and drop your EPUB file here, or click to browse
+        </p>
+      </template>
+
+      <template v-else>
+        <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+          Drop EPUB file here
+        </h2>
+
+        <p class="text-base text-gray-600 dark:text-gray-400 mb-8">
+          or click to browse
+        </p>
+      </template>
 
       <button
         class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors duration-200"
@@ -91,7 +110,10 @@ function openFilePicker() {
       </button>
     </div>
 
-    <p class="mt-8 text-sm text-gray-500 dark:text-gray-400">
+    <p
+      v-if="!compact"
+      class="mt-8 text-sm text-gray-500 dark:text-gray-400"
+    >
       All processing happens locally in your browser
     </p>
 
