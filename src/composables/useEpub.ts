@@ -104,7 +104,10 @@ export function useEpub() {
     };
 
     const coverBlob = await loadCover(currentBook);
-    const toc = await loadToc(navigation);
+    let toc = await loadTocFromNcx(currentBook);
+    if (toc.length === 0) {
+      toc = await loadToc(navigation);
+    }
 
     try {
       const rootfile = await currentBook.loaded.rootfile;
@@ -123,6 +126,8 @@ export function useEpub() {
 
     const chapters = await loadChapters(currentBook, currentBaseUrl, toc);
 
+    (currentBook as any).chapters = chapters;
+
     return {
       metadata: bookMetadata,
       chapters,
@@ -132,7 +137,7 @@ export function useEpub() {
   }
 
   async function loadChapterByHref(href: string): Promise<Chapter | null> {
-    if (!currentBook) return null;
+    if (!currentBook || !(currentBook as any).chapters) return null;
 
     try {
       let chapterPath = href;
@@ -151,13 +156,17 @@ export function useEpub() {
 
       const title = await getTitleFromChapter(currentBook, chapterPath);
 
-      return {
+      const newChapter: Chapter = {
         id: chapterPath,
         href: href,
         title: title || chapterPath.split('/').pop() || href,
         level: 0,
         content,
       };
+
+      (currentBook as any).chapters.push(newChapter);
+
+      return newChapter;
     } catch (err) {
       console.warn(`Failed to load chapter: ${href}`, err);
       return null;
@@ -224,10 +233,105 @@ export function useEpub() {
     return toc;
   }
 
+  async function loadTocFromNcx(book: any): Promise<TocItem[]> {
+    const toc: TocItem[] = [];
+
+    try {
+      const archiveZip = (book as any).archive?.zip;
+      if (!archiveZip) return toc;
+
+      let ncxFile = archiveZip.file('toc.ncx');
+      if (!ncxFile) {
+        ncxFile = archiveZip.file('OPS/toc.ncx');
+      }
+      if (!ncxFile) {
+        const allFiles = archiveZip.files ? Object.keys(archiveZip.files) : [];
+        ncxFile = allFiles.find(f => f.toLowerCase().endsWith('.ncx')) ? archiveZip.file(allFiles.find(f => f.toLowerCase().endsWith('.ncx'))!) : null;
+      }
+
+      if (!ncxFile) return toc;
+
+      const ncxContent = await ncxFile.async('string');
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(ncxContent, 'application/xml');
+
+      const navMap = doc.querySelector('navMap');
+      if (!navMap) return toc;
+
+      const topLevelNavPoints = Array.from(navMap.children).filter(
+        el => el.tagName === 'navPoint' || el.localName === 'navPoint'
+      );
+
+      for (const navPoint of topLevelNavPoints) {
+        const navLabel = navPoint.querySelector('text');
+        const contentEl = navPoint.querySelector('content');
+        const id = navPoint.getAttribute('id') || '';
+        const playOrder = parseInt(navPoint.getAttribute('playOrder') || '0', 10);
+
+        const title = navLabel?.textContent?.trim() || 'Untitled';
+        const src = contentEl?.getAttribute('src') || '';
+
+        const children: TocItem[] = [];
+        const childNavPoints = Array.from(navPoint.children).filter(
+          el => el.tagName === 'navPoint' || el.localName === 'navPoint'
+        );
+        for (const child of childNavPoints) {
+          const childNavLabel = child.querySelector('text');
+          const childContentEl = child.querySelector('content');
+          const childTitle = childNavLabel?.textContent?.trim() || 'Untitled';
+          const childSrc = childContentEl?.getAttribute('src') || '';
+          const childPlayOrder = parseInt(child.getAttribute('playOrder') || '0', 10);
+
+          children.push({
+            id: child.getAttribute('id') || childSrc,
+            href: childSrc,
+            title: childTitle,
+            level: 1,
+            children: [],
+            playOrder: childPlayOrder,
+          });
+        }
+
+        toc.push({
+          id: id || src,
+          href: src,
+          title,
+          level: 0,
+          children,
+          playOrder,
+        });
+      }
+
+      toc.sort((a, b) => (a.playOrder || 0) - (b.playOrder || 0));
+
+    } catch (err) {
+      console.warn('Failed to load NCX toc:', err);
+    }
+
+    return toc;
+  }
+
   async function loadChapters(book: any, baseUrl: string | undefined, toc: TocItem[]): Promise<Chapter[]> {
     const chapters: Chapter[] = [];
 
+    const allItems: { item: TocItem; isChild: boolean }[] = [];
+
     for (const item of toc) {
+      allItems.push({ item, isChild: false });
+      if (item.children) {
+        for (const child of item.children) {
+          allItems.push({ item: child, isChild: true });
+        }
+      }
+    }
+
+    allItems.sort((a, b) => {
+      const aOrder = a.item.playOrder || 0;
+      const bOrder = b.item.playOrder || 0;
+      return aOrder - bOrder;
+    });
+
+    for (const { item } of allItems) {
       const content = await loadChapterContent(book, baseUrl, item.href, item.title);
       chapters.push({
         id: item.id,
@@ -236,19 +340,6 @@ export function useEpub() {
         level: item.level,
         content,
       });
-
-      if (item.children) {
-        for (const child of item.children) {
-          const childContent = await loadChapterContent(book, baseUrl, child.href, child.title);
-          chapters.push({
-            id: child.id || child.href,
-            href: child.href,
-            title: child.title,
-            level: 1,
-            content: childContent,
-          });
-        }
-      }
     }
 
     return chapters;

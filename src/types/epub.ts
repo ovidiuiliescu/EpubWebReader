@@ -23,6 +23,7 @@ export interface Chapter {
 
 export interface TocItem extends Chapter {
   children?: TocItem[];
+  playOrder?: number;
 }
 
 export interface ReadingProgress {
