@@ -229,7 +229,7 @@ function openLibraryFilePicker() {
                 <div
                   v-for="book in libraryStore.books"
                   :key="book.id"
-                  class="relative rounded-xl overflow-hidden max-w-[200px]"
+                  class="relative rounded-xl overflow-hidden h-full"
                 >
                   <div
                     class="absolute inset-0 -z-10 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-1"
@@ -238,12 +238,12 @@ function openLibraryFilePicker() {
                     class="group relative z-10 cursor-pointer border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-300 hover:-translate-y-1"
                     @click="openBook(book)"
                   >
-                  <div class="aspect-[2/3] relative overflow-hidden">
+                  <div class="aspect-[2/3] relative overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <img
                       v-if="coverUrls.has(book.id)"
                       :src="coverUrls.get(book.id)"
                       :alt="book.title"
-                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                     <div
                       v-else
@@ -297,8 +297,9 @@ function openLibraryFilePicker() {
 
                   <div class="p-4">
                     <h3
-                      class="font-semibold text-sm line-clamp-2 mb-1"
+                      class="font-semibold text-sm line-clamp-2 mb-1 min-h-[2.5rem]"
                       :class="themeClasses.text"
+                      :title="book.title"
                     >
                       {{ book.title }}
                     </h3>
