@@ -37,7 +37,39 @@ function cycleTheme() {
     <div class="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
       <!-- Left: Title & Nav -->
       <div class="flex items-center space-x-4">
-        <h1 class="text-lg font-semibold truncate max-w-[200px]">
+        <!-- Mobile: Simple nav indicator -->
+        <div class="flex items-center space-x-2 sm:hidden">
+          <button
+            @click="bookStore.prevChapter()"
+            :disabled="bookStore.currentChapter === 0"
+            class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="themeClasses.text"
+            title="Previous chapter"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          <span class="text-sm font-medium" :class="themeClasses.text">
+            {{ bookStore.currentChapter + 1 }} / {{ bookStore.chapters.length }}
+          </span>
+          
+          <button
+            @click="bookStore.nextChapter()"
+            :disabled="bookStore.currentChapter >= bookStore.chapters.length - 1"
+            class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="themeClasses.text"
+            title="Next chapter"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Desktop: Title and nav -->
+        <h1 class="text-lg font-semibold truncate max-w-[200px] hidden sm:block">
           {{ bookStore.metadata?.title || 'EpubWebReader' }}
         </h1>
         

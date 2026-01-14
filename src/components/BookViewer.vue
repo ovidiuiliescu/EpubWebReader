@@ -343,39 +343,5 @@ onUnmounted(() => {
         @click="handleLinkClick"
       />
     </div>
-
-    <!-- Mobile Navigation Bar -->
-    <nav
-      class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:hidden"
-      :class="themeClasses.bg"
-    >
-      <button
-        @click="bookStore.prevChapter()"
-        :disabled="bookStore.currentChapter === 0"
-        class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        :class="themeClasses.text"
-      >
-        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span class="text-sm">Prev</span>
-      </button>
-
-      <span class="text-sm text-gray-500 dark:text-gray-400">
-        {{ bookStore.currentChapter + 1 }} / {{ bookStore.chapters.length }}
-      </span>
-
-      <button
-        @click="bookStore.nextChapter()"
-        :disabled="bookStore.currentChapter >= bookStore.chapters.length - 1"
-        class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        :class="themeClasses.text"
-      >
-        <span class="text-sm">Next</span>
-        <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-    </nav>
   </div>
 </template>
