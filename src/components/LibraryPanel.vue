@@ -173,6 +173,17 @@ function formatDate(date: Date): string {
         </div>
       </div>
 
+      <div v-else class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+        <svg class="w-24 h-24 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="0.5"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          />
+        </svg>
+      </div>
+
       <div class="p-4">
         <div v-if="libraryStore.books.length === 0" class="text-center py-16">
           <div class="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center mx-auto mb-4">

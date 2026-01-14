@@ -93,7 +93,7 @@ function closePanels() {
           <!-- TOC Sidebar -->
           <aside
             v-if="showToc"
-            class="fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300"
+            class="fixed top-16 bottom-0 left-0 z-50 w-72 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl transition-transform duration-300"
             :class="themeClasses.bg"
           >
             <ChapterList @close="showToc = false" />
@@ -110,7 +110,7 @@ function closePanels() {
           <!-- Search Panel -->
           <div
             v-if="showSearch"
-            class="fixed inset-y-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
+            class="fixed top-16 bottom-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
             :class="themeClasses.bg"
           >
             <SearchPanel @close="showSearch = false" />
@@ -119,7 +119,7 @@ function closePanels() {
           <!-- Library Panel -->
           <div
             v-if="showLibrary"
-            class="fixed inset-y-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
+            class="fixed top-16 bottom-0 right-0 z-50 w-80 overflow-y-auto border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl"
             :class="themeClasses.bg"
           >
             <LibraryPanel @close="showLibrary = false" />

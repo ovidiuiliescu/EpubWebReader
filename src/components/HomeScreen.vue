@@ -188,6 +188,19 @@ function openLibraryFilePicker() {
               </div>
             </div>
 
+            <div v-else-if="libraryStore.books.length > 0" class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+              <div class="text-center">
+                <svg class="w-32 h-32 mx-auto text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="0.5"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+              </div>
+            </div>
+
             <div class="flex-1 overflow-y-auto">
               <div
                 v-if="libraryStore.books.length === 0"
@@ -211,12 +224,12 @@ function openLibraryFilePicker() {
 
               <div
                 v-else
-                class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 gap-4 lg:gap-6"
+                class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 lg:gap-4"
               >
                 <div
                   v-for="book in libraryStore.books"
                   :key="book.id"
-                  class="group relative bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-600"
+                  class="group relative bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-600 max-w-[200px]"
                   @click="openBook(book)"
                 >
                   <div class="aspect-[2/3] relative overflow-hidden">
@@ -242,14 +255,14 @@ function openLibraryFilePicker() {
 
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                    <div class="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <div class="flex gap-2">
+                    <div class="absolute bottom-0 left-0 right-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <div class="flex gap-1">
                         <button
                           @click.stop="exportBook(book)"
-                          class="flex-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-indigo-600 dark:text-indigo-400 px-3 py-2 rounded-lg text-sm font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-1 shadow-lg"
+                          class="flex-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-indigo-600 dark:text-indigo-400 px-2 py-1.5 rounded text-xs font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-0.5 shadow-lg"
                           title="Export EPUB"
                         >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -257,14 +270,13 @@ function openLibraryFilePicker() {
                               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                             />
                           </svg>
-                          Export
                         </button>
                         <button
                           @click.stop="removeBook(book.id)"
-                          class="flex-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-red-600 dark:text-red-400 px-3 py-2 rounded-lg text-sm font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-1 shadow-lg"
+                          class="flex-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-red-600 dark:text-red-400 px-2 py-1.5 rounded text-xs font-medium hover:bg-white dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-0.5 shadow-lg"
                           title="Remove from library"
                         >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -272,7 +284,6 @@ function openLibraryFilePicker() {
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                             />
                           </svg>
-                          Delete
                         </button>
                       </div>
                     </div>
@@ -288,21 +299,19 @@ function openLibraryFilePicker() {
                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate mb-2">
                       {{ book.author }}
                     </p>
-                    <div class="flex items-center justify-between text-xs">
-                      <div class="flex items-center gap-1.5">
-                        <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div
-                            class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
-                            :style="{ width: `${Math.round(book.progress)}%` }"
-                          />
-                        </div>
-                        <span class="text-gray-500 dark:text-gray-400 font-medium">
-                          {{ Math.round(book.progress) }}%
-                        </span>
+                    <div class="flex items-center gap-1.5 text-xs">
+                      <div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
+                          :style="{ width: `${Math.round(book.progress)}%` }"
+                        />
                       </div>
-                      <span class="text-gray-400 dark:text-gray-500">
-                        {{ formatDate(book.lastReadAt) }}
+                      <span class="text-gray-500 dark:text-gray-400 font-medium">
+                        {{ Math.round(book.progress) }}%
                       </span>
+                    </div>
+                    <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      {{ formatDate(book.lastReadAt) }}
                     </div>
                   </div>
                 </div>
