@@ -14,6 +14,8 @@ const bookStore = useBookStore();
 const { themeClasses } = useTheme();
 
 const coverUrls = ref<Map<string, string>>(new Map());
+const fileInput = ref<HTMLInputElement | null>(null);
+const isDragging = ref(false);
 
 onMounted(async () => {
   await libraryStore.init();
@@ -81,6 +83,36 @@ function formatDate(date: Date): string {
 function handleFileDrop(file: File) {
   emit('select-book', file, true);
 }
+
+function handleLibraryDragOver(event: DragEvent) {
+  event.preventDefault();
+  isDragging.value = true;
+}
+
+function handleLibraryDragLeave() {
+  isDragging.value = false;
+}
+
+function handleLibraryDrop(event: DragEvent) {
+  event.preventDefault();
+  isDragging.value = false;
+
+  const files = event.dataTransfer?.files;
+  if (files && files.length > 0) {
+    emit('select-book', files[0], true);
+  }
+}
+
+function handleLibraryFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    emit('select-book', target.files[0], true);
+  }
+}
+
+function openLibraryFilePicker() {
+  fileInput.value?.click();
+}
 </script>
 
 <template>
@@ -118,7 +150,13 @@ function handleFileDrop(file: File) {
         </div>
 
         <div class="lg:w-7/12 flex flex-col min-h-0">
-          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 lg:p-8 border border-gray-200 dark:border-gray-700 flex flex-col h-full">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 lg:p-8 border border-gray-200 dark:border-gray-700 flex flex-col h-full relative"
+            @dragover="handleLibraryDragOver"
+            @dragleave="handleLibraryDragLeave"
+            @drop="handleLibraryDrop"
+            :class="{ 'ring-4 ring-indigo-500': isDragging }"
+          >
             <div class="flex items-center justify-between mb-6 flex-shrink-0">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -137,6 +175,37 @@ function handleFileDrop(file: File) {
                     {{ libraryStore.books.length }} book{{ libraryStore.books.length !== 1 ? 's' : '' }}
                   </p>
                 </div>
+              </div>
+              <button
+                @click="openLibraryFilePicker"
+                class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+                title="Add Book to Library"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Book
+              </button>
+            </div>
+
+            <div v-if="isDragging" class="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <div class="text-center">
+                <svg class="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+                <p class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">
+                  Drop your EPUB here to add it to the library
+                </p>
               </div>
             </div>
 
@@ -264,5 +333,13 @@ function handleFileDrop(file: File) {
         </div>
       </div>
     </div>
+
+    <input
+      ref="fileInput"
+      type="file"
+      accept=".epub,.EPUB"
+      class="hidden"
+      @change="handleLibraryFileSelect"
+    />
   </div>
 </template>

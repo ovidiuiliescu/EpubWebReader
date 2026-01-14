@@ -102,7 +102,7 @@ function closePanels() {
           <!-- Book Content -->
           <main
             class="flex-1 transition-all duration-300 overflow-hidden"
-            :class="{ 'ml-72': showToc, 'mr-80': showSearch }"
+            :class="{ 'ml-72': showToc, 'mr-80': showSearch || showLibrary }"
           >
             <BookViewer />
           </main>
