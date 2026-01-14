@@ -37,4 +37,23 @@
     background-color: theme('colors.gray.400');
     border-radius: 4px;
   }
+
+  .search-highlight {
+    background-color: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .dark .search-highlight {
+    background-color: #ca8a04;
+    color: white;
+  }
+
+  .search-highlight.active {
+    background-color: #f97316;
+    color: white;
+    outline: 2px solid #ea580c;
+    outline-offset: 1px;
+  }
 }

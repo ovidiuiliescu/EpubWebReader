@@ -48,6 +48,15 @@ export interface SearchResult {
   chapterTitle: string;
   excerpt: string;
   cfi: string;
+  searchText: string;
+  matchedText: string;
+  matchIndex: number;
+}
+
+export interface SearchHighlight {
+  chapterIndex: number;
+  searchText: string;
+  matchIndex?: number;
 }
 
 export type EpubResult<T> = { success: true; data: T } | { success: false; error: Error };

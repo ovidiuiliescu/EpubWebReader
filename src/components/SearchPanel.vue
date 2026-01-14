@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useBookStore } from '@/stores/book';
 import { useSearch } from '@/composables/useSearch';
 import { useTheme } from '@/composables/useTheme';
@@ -14,17 +14,32 @@ const { themeClasses } = useTheme();
 
 const searchQuery = ref('');
 const searchInput = ref<HTMLInputElement | null>(null);
-const book = ref<any>(null);
 
 async function performSearch() {
-  if (!searchQuery.value.trim() || !book.value) return;
+  if (!searchQuery.value.trim()) {
+    bookStore.setSearchHighlight(null);
+    return;
+  }
   
   await search.searchInBook(
-    book.value,
     searchQuery.value,
     bookStore.chapters
   );
+  
+  const currentChapterResults = search.results.value.filter(
+    r => r.chapterIndex === bookStore.currentChapter
+  );
+  
+  bookStore.setSearchHighlight({
+    chapterIndex: bookStore.currentChapter,
+    searchText: searchQuery.value,
+    matchIndex: currentChapterResults.length > 0 ? 0 : undefined,
+  });
 }
+
+onUnmounted(() => {
+  bookStore.setSearchHighlight(null);
+});
 
 watch(searchQuery, () => {
   const timer = setTimeout(() => {
@@ -34,8 +49,12 @@ watch(searchQuery, () => {
 });
 
 function goToResult(result: any) {
+  bookStore.setSearchHighlight({
+    chapterIndex: result.chapterIndex,
+    searchText: result.searchText,
+    matchIndex: result.matchIndex,
+  });
   bookStore.setChapter(result.chapterIndex);
-  emit('close');
 }
 </script>
 

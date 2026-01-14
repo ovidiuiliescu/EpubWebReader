@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import type { SearchResult } from '@/types/epub';
+import type { SearchResult, Chapter } from '@/types/epub';
 
 export function useSearch() {
   const results = ref<SearchResult[]>([]);
@@ -7,9 +7,8 @@ export function useSearch() {
   const query = ref('');
 
   async function searchInBook(
-    book: any,
     searchQuery: string,
-    chapters: Array<{ href: string; title: string }>
+    chapters: Chapter[]
   ): Promise<SearchResult[]> {
     if (!searchQuery.trim()) {
       results.value = [];
@@ -19,46 +18,54 @@ export function useSearch() {
     isSearching.value = true;
     query.value = searchQuery;
     const searchResults: SearchResult[] = [];
+    const maxResultsPerChapter = 10;
 
     try {
       for (let i = 0; i < chapters.length; i++) {
         const chapter = chapters[i];
-        
-        try {
-          const chapterDoc = await book.loaded.navigation.get(chapter.href);
-          if (chapterDoc && chapterDoc.document) {
-            const text = chapterDoc.document.body.textContent || '';
-            const lowerText = text.toLowerCase();
-            const lowerQuery = searchQuery.toLowerCase();
-            
-            let index = lowerText.indexOf(lowerQuery);
-          while (index !== -1) {
-              const start = Math.max(0, index - 50);
-              const end = Math.min(text.length, index + searchQuery.length + 50);
-              let excerpt = text.substring(start, end);
-              
-              if (start > 0) excerpt = '...' + excerpt;
-              if (end < text.length) excerpt = excerpt + '...';
-              
-              excerpt = excerpt.replace(
-                new RegExp(`(${escapeRegex(searchQuery)})`, 'gi'),
-                '<mark>$1</mark>'
-              );
+        let resultsInChapter = 0;
 
-              const cfi = chapterDoc.href;
+        if (!chapter.content) continue;
 
-              searchResults.push({
-                chapterIndex: i,
-                chapterTitle: chapter.title,
-                excerpt,
-                cfi,
-              });
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(chapter.content, 'text/html');
+        const body = doc.body;
 
-              index = lowerText.indexOf(lowerQuery, index + 1);
-            }
-          }
-        } catch {
-          console.warn(`Failed to search chapter: ${chapter.title}`);
+        if (!body) continue;
+
+        const text = body.textContent || '';
+        const lowerText = text.toLowerCase();
+        const lowerQuery = searchQuery.toLowerCase();
+
+        let index = lowerText.indexOf(lowerQuery);
+
+        while (index !== -1 && resultsInChapter < maxResultsPerChapter) {
+          const contextLength = 50;
+          const start = Math.max(0, index - contextLength);
+          const end = Math.min(text.length, index + searchQuery.length + contextLength);
+          let excerpt = text.substring(start, end);
+          const matchedText = text.substring(index, index + searchQuery.length);
+
+          if (start > 0) excerpt = '...' + excerpt;
+          if (end < text.length) excerpt = excerpt + '...';
+
+          excerpt = excerpt.replace(
+            new RegExp(`(${escapeRegex(searchQuery)})`, 'gi'),
+            '<mark>$1</mark>'
+          );
+
+          searchResults.push({
+            chapterIndex: i,
+            chapterTitle: chapter.title,
+            excerpt,
+            cfi: chapter.href,
+            searchText: searchQuery,
+            matchedText,
+            matchIndex: resultsInChapter,
+          });
+
+          resultsInChapter++;
+          index = lowerText.indexOf(lowerQuery, index + 1);
         }
       }
     } finally {

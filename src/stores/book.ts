@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { EpubBook, ReadingProgress } from '@/types/epub';
+import type { EpubBook, ReadingProgress, SearchHighlight } from '@/types/epub';
 
 export const useBookStore = defineStore('book', () => {
   const currentBook = ref<EpubBook | null>(null);
@@ -8,6 +8,7 @@ export const useBookStore = defineStore('book', () => {
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
   const readingProgress = ref<Map<string, ReadingProgress>>(new Map());
+  const searchHighlight = ref<SearchHighlight | null>(null);
 
   const metadata = computed(() => currentBook.value?.metadata);
   const chapters = computed(() => currentBook.value?.chapters || []);
@@ -71,6 +72,10 @@ export const useBookStore = defineStore('book', () => {
     error.value = null;
   }
 
+  function setSearchHighlight(highlight: SearchHighlight | null): void {
+    searchHighlight.value = highlight;
+  }
+
   return {
     currentBook,
     currentChapter,
@@ -80,11 +85,13 @@ export const useBookStore = defineStore('book', () => {
     chapters,
     toc,
     currentChapterData,
+    searchHighlight,
     loadBook,
     setChapter,
     nextChapter,
     prevChapter,
     updateProgress,
     clearBook,
+    setSearchHighlight,
   };
 });

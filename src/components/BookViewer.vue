@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted, nextTick, watchEffect } from 'vue';
+import { ref, computed, onUnmounted, nextTick, watchEffect, watch } from 'vue';
 import { useBookStore } from '@/stores/book';
 import { useSettingsStore } from '@/stores/settings';
 import { useTheme } from '@/composables/useTheme';
@@ -54,14 +54,109 @@ function handleScroll() {
 
 function renderCurrentChapter() {
   if (!articleRef.value || !bookStore.currentBook) return;
-  
+
   const chapter = bookStore.chapters[bookStore.currentChapter];
   if (!chapter) {
     articleRef.value.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No chapter content available.</p>';
     return;
   }
-  
-  articleRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
+
+  let content = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
+
+  if (bookStore.searchHighlight && bookStore.searchHighlight.chapterIndex === bookStore.currentChapter) {
+    content = highlightSearchText(content, bookStore.searchHighlight.searchText);
+  }
+
+  articleRef.value.innerHTML = content;
+
+  if (bookStore.searchHighlight && bookStore.searchHighlight.chapterIndex === bookStore.currentChapter) {
+    nextTick(() => scrollToFirstHighlight());
+  }
+}
+
+function highlightSearchText(html: string, searchText: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const body = doc.body;
+
+  if (!body) return html;
+
+  const regex = new RegExp(`(${escapeRegex(searchText)})`, 'gi');
+  const walker = document.createTreeWalker(
+    body,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodesToReplace: { node: Text; parent: Node }[] = [];
+  let node: Node | null;
+
+  while ((node = walker.nextNode())) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const textNode = node as Text;
+      if (regex.test(textNode.textContent || '')) {
+        const parent = textNode.parentNode;
+        if (parent && parent.nodeName !== 'SCRIPT' && parent.nodeName !== 'STYLE') {
+          nodesToReplace.push({ node: textNode, parent });
+        }
+      }
+    }
+  }
+
+  let matchCount = 0;
+  const targetIndex = bookStore.searchHighlight?.matchIndex ?? 0;
+
+  for (const { node, parent } of nodesToReplace) {
+    const matches = (node.textContent || '').matchAll(regex);
+    const parts: (string | HTMLElement)[] = [];
+    let lastIndex = 0;
+
+    for (const match of matches) {
+      if (match.index !== undefined) {
+        parts.push(node.textContent!.substring(lastIndex, match.index));
+        const mark = document.createElement('mark');
+        mark.className = 'search-highlight';
+        if (matchCount === targetIndex) {
+          mark.classList.add('active');
+        }
+        mark.textContent = match[0];
+        parts.push(mark);
+        lastIndex = match.index + match[0].length;
+        matchCount++;
+      }
+    }
+
+    if (lastIndex < (node.textContent || '').length) {
+      parts.push(node.textContent!.substring(lastIndex));
+    }
+
+    const span = document.createElement('span');
+    parts.forEach(part => {
+      if (typeof part === 'string') {
+        span.appendChild(document.createTextNode(part));
+      } else {
+        span.appendChild(part);
+      }
+    });
+    parent.replaceChild(span, node);
+  }
+
+  return body.innerHTML;
+}
+
+function scrollToFirstHighlight() {
+  const highlights = articleRef.value?.querySelectorAll('.search-highlight');
+  if (highlights && highlights.length > 0) {
+    const targetIndex = bookStore.searchHighlight?.matchIndex ?? 0;
+    const targetHighlight = highlights[Math.min(targetIndex, highlights.length - 1)];
+    if (targetHighlight) {
+      targetHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 watchEffect(() => {
@@ -69,6 +164,15 @@ watchEffect(() => {
     nextTick(() => renderCurrentChapter());
   }
 });
+
+watch(
+  () => bookStore.searchHighlight,
+  () => {
+    if (articleRef.value) {
+      nextTick(() => renderCurrentChapter());
+    }
+  }
+);
 
 onUnmounted(() => {
   if (scrollTimer) clearTimeout(scrollTimer);
