@@ -68,6 +68,7 @@ async function getEpub(): Promise<EpubFactory> {
     const module = await import('epubjs');
     ePub = resolveEpubFactory(module);
   }
+
   return ePub;
 }
 
@@ -101,7 +102,24 @@ export function useEpub() {
 
     const coverBlob = await loadCover(book);
     const toc = await loadToc(navigation);
-    const chapters = await loadChapters(navigation, toc);
+
+    let baseUrl: string | undefined;
+    try {
+      const rootfile = await book.loaded.rootfile;
+      if (rootfile && typeof rootfile === 'object') {
+        const rootfileObj = rootfile as Record<string, unknown>;
+        const rootPath = (rootfileObj.rootfileUrl || rootfileObj.path || rootfileObj.rootPath) as string | undefined;
+        if (rootPath) {
+          const lastSlash = rootPath.lastIndexOf('/');
+          baseUrl = lastSlash >= 0 ? rootPath.substring(0, lastSlash + 1) : '';
+        }
+      }
+    } catch {
+      console.warn('Unable to determine base URL from book packaging');
+    }
+
+    const chapters = await loadChapters(book, baseUrl, toc);
+
 
     return {
       metadata: bookMetadata,
@@ -143,59 +161,124 @@ export function useEpub() {
     return toc;
   }
 
-  async function loadChapters(navigation: any, toc: TocItem[]): Promise<Chapter[]> {
+  async function loadChapters(book: any, baseUrl: string | undefined, toc: TocItem[]): Promise<Chapter[]> {
     const chapters: Chapter[] = [];
-    
+
     for (const item of toc) {
-      try {
-        const chapterDoc = await navigation.get(item.href);
-        const content = chapterDoc?.document?.body?.innerHTML || '';
-        
-        chapters.push({
-          id: item.id,
-          href: item.href,
-          title: item.title,
-          level: item.level,
-          content,
-        });
-      } catch (err) {
-        console.warn(`Failed to load chapter: ${item.title}`, err);
-        chapters.push({
-          id: item.id,
-          href: item.href,
-          title: item.title,
-          level: item.level,
-          content: `<p>Unable to load chapter content.</p>`,
-        });
-      }
-      
+      const content = await loadChapterContent(book, baseUrl, item.href, item.title);
+      chapters.push({
+        id: item.id,
+        href: item.href,
+        title: item.title,
+        level: item.level,
+        content,
+      });
+
       if (item.children) {
         for (const child of item.children) {
-          try {
-            const chapterDoc = await navigation.get(child.href);
-            const content = chapterDoc?.document?.body?.innerHTML || '';
-            
-            chapters.push({
-              id: child.id || child.href,
-              href: child.href,
-              title: child.title,
-              level: 1,
-              content,
-            });
-          } catch (err) {
-            chapters.push({
-              id: child.id || child.href,
-              href: child.href,
-              title: child.title,
-              level: 1,
-              content: `<p>Unable to load chapter content.</p>`,
-            });
-          }
+          const childContent = await loadChapterContent(book, baseUrl, child.href, child.title);
+          chapters.push({
+            id: child.id || child.href,
+            href: child.href,
+            title: child.title,
+            level: 1,
+            content: childContent,
+          });
         }
       }
     }
-    
+
     return chapters;
+  }
+
+  async function loadChapterContent(book: any, baseUrl: string | undefined, href: string, title: string): Promise<string> {
+    try {
+      const archiveZip = (book as any).archive?.zip;
+
+      if (!archiveZip || typeof archiveZip.file !== 'function') {
+        console.warn(`Archive zip not available for chapter: ${title} (${href})`);
+        return `<p>Unable to load chapter: ${title}</p>`;
+      }
+
+      let chapterPath: string;
+      if (href.startsWith('http://') || href.startsWith('https://')) {
+        try {
+          const parsed = new URL(href);
+          chapterPath = parsed.pathname;
+        } catch {
+          chapterPath = href;
+        }
+      } else if (baseUrl) {
+        try {
+          chapterPath = new URL(href, baseUrl).pathname;
+        } catch {
+          chapterPath = href;
+        }
+      } else {
+        chapterPath = href;
+      }
+
+      chapterPath = chapterPath.replace(/^\//, '');
+
+      const zipFile = archiveZip.file(chapterPath);
+      if (!zipFile) {
+        console.warn(`Chapter file not found in archive: ${title} (${chapterPath})`);
+        return `<p>Unable to load chapter: ${title}</p>`;
+      }
+
+      const xhtml = await zipFile.async('string');
+      if (!xhtml || xhtml.trim() === '') {
+        console.warn(`Empty chapter content: ${title} (${chapterPath})`);
+        return `<p>Empty chapter: ${title}</p>`;
+      }
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xhtml, 'application/xhtml+xml');
+
+      if (!doc) {
+        console.warn(`Failed to parse chapter: ${title} (${chapterPath})`);
+        return `<p>Unable to load chapter: ${title}</p>`;
+      }
+
+      let body = doc.body;
+
+      if (!body) {
+        const docEl = doc.documentElement;
+        const debugOuter = docEl?.outerHTML?.substring(0, 200).replace(/\s+/g, ' ');
+        console.warn(
+          `No body element in chapter: ${title} (${chapterPath}) ` +
+          `Document element: ${docEl?.tagName || 'none'}, ` +
+          `outerHTML preview: ${debugOuter || '(empty)'}`,
+        );
+
+        if (docEl) {
+          const bodyCandidates = docEl.getElementsByTagName('body');
+          if (bodyCandidates.length > 0) {
+            body = bodyCandidates[0];
+          } else {
+            const nsBody = docEl.getElementsByTagNameNS('http://www.w3.org/1999/xhtml', 'body');
+            if (nsBody.length > 0) {
+              body = nsBody[0];
+            }
+          }
+        }
+
+        if (!body) {
+          return `<p>Unable to load chapter: ${title}</p>`;
+        }
+      }
+
+      let innerHTML = body.innerHTML;
+      if (!innerHTML || innerHTML.trim() === '') {
+        console.warn(`Empty body in chapter: ${title} (${chapterPath})`);
+        return `<p>Empty chapter: ${title}</p>`;
+      }
+
+      return innerHTML;
+    } catch (err) {
+      console.warn(`Failed to load chapter content: ${title} (${href})`, err);
+      return `<p>Unable to load chapter: ${title}</p>`;
+    }
   }
 
   async function generateBookId(file: File): Promise<string> {
