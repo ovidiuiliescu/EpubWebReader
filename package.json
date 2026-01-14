@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "homepage": "https://ovidiu-ionescu.github.io/EpubWebReader",
+  "homepage": "https://ovidiuiliescu.github.io/EpubWebReader",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",

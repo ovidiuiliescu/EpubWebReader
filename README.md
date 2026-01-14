@@ -4,12 +4,12 @@
 
   **A beautiful, fully-featured EPUB reader built for the web**
 
-  [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-121013?style=flat&logo=github)](https://ovidiu-ionescu.github.io/EpubWebReader)
+  [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-121013?style=flat&logo=github)](https://ovidiuiliescu.github.io/EpubWebReader)
   [![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?style=flat&logo=vue.js)](https://vuejs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
 
-  [Live Demo](https://ovidiu-ionescu.github.io/EpubWebReader) · [Report Bug](https://github.com/ovidiu-ionescu/EpubWebReader/issues)
+  [Live Demo](https://ovidiuiliescu.github.io/EpubWebReader) · [Report Bug](https://github.com/ovidiuiliescu/EpubWebReader/issues)
 
 </div>
 
@@ -82,7 +82,7 @@ The combination of these AI agents enables rapid, high-quality development while
 
 ```bash
 # Clone the repository
-git clone https://github.com/ovidiu-ionescu/EpubWebReader.git
+git clone https://github.com/ovidiuiliescu/EpubWebReader.git
 cd EpubWebReader
 
 # Install dependencies
