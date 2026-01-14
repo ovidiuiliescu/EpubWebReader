@@ -18,6 +18,9 @@ npm run dev
 # Build for production (GitHub Pages)
 npm run build
 
+# Build standalone package (relative paths, works offline)
+npm run build:standalone
+
 # Preview production build
 npm run preview
 
