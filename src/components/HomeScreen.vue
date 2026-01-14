@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useLibraryStore } from '@/stores/library';
 import { useBookStore } from '@/stores/book';
 import { useTheme } from '@/composables/useTheme';
-import DropZone from './DropZone.vue';
 
 const emit = defineEmits<{
   'select-book': [file: File, shouldCache: boolean, existingBookId?: string];
@@ -80,17 +79,16 @@ function formatDate(date: Date): string {
   }).format(new Date(date));
 }
 
-function handleFileDrop(file: File) {
-  emit('select-book', file, true);
-}
-
 function handleLibraryDragOver(event: DragEvent) {
   event.preventDefault();
   isDragging.value = true;
 }
 
-function handleLibraryDragLeave() {
-  isDragging.value = false;
+function handleLibraryDragLeave(event: DragEvent) {
+  event.preventDefault();
+  if (!event.relatedTarget || !(event.currentTarget as HTMLElement)?.contains(event.relatedTarget as Node)) {
+    isDragging.value = false;
+  }
 }
 
 function handleLibraryDrop(event: DragEvent) {
@@ -129,27 +127,8 @@ function openLibraryFilePicker() {
     </div>
 
     <div class="container mx-auto px-4 pb-6 lg:pb-8 flex-1 min-h-0">
-      <div class="flex flex-col lg:flex-row gap-6 h-full min-h-0">
-        <div class="lg:w-5/12 flex flex-col min-h-0">
-          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 lg:p-8 border border-gray-200 dark:border-gray-700 flex flex-col h-full">
-            <div class="flex items-center gap-3 mb-4 flex-shrink-0">
-              <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-              </div>
-              <h2 class="text-xl font-bold" :class="themeClasses.text">Add New Book</h2>
-            </div>
-            <DropZone @drop="handleFileDrop" compact />
-          </div>
-        </div>
-
-        <div class="lg:w-7/12 flex flex-col min-h-0">
+      <div class="flex h-full min-h-0">
+        <div class="w-full flex flex-col min-h-0">
           <div
             class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 lg:p-8 border border-gray-200 dark:border-gray-700 flex flex-col h-full relative"
             @dragover="handleLibraryDragOver"

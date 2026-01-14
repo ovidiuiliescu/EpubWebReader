@@ -45,8 +45,11 @@ function handleDragOver(event: DragEvent) {
   isDragging.value = true;
 }
 
-function handleDragLeave() {
-  isDragging.value = false;
+function handleDragLeave(event: DragEvent) {
+  event.preventDefault();
+  if (!event.relatedTarget || !(event.currentTarget as HTMLElement)?.contains(event.relatedTarget as Node)) {
+    isDragging.value = false;
+  }
 }
 
 async function handleDrop(event: DragEvent) {
@@ -80,10 +83,17 @@ async function removeBook(id: string) {
 
 async function handleFileUpload(file: File) {
   try {
-    await bookStore.loadBook(file);
+    await bookStore.loadBook(file, true);
     emit('close');
   } catch (err) {
     console.error('Failed to load book:', err);
+  }
+}
+
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    handleFileUpload(target.files[0]);
   }
 }
 
@@ -261,5 +271,13 @@ function formatDate(date: Date): string {
         Clear Library
       </button>
     </div>
+
+    <input
+      ref="fileInput"
+      type="file"
+      accept=".epub,.EPUB"
+      class="hidden"
+      @change="handleFileSelect"
+    />
   </div>
 </template>
