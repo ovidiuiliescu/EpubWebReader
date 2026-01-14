@@ -229,9 +229,12 @@ function openLibraryFilePicker() {
                 <div
                   v-for="book in libraryStore.books"
                   :key="book.id"
-                  class="group relative bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-600 max-w-[200px]"
-                  @click="openBook(book)"
+                  class="relative rounded-xl overflow-hidden max-w-[200px]"
                 >
+                  <div
+                    class="group relative bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-600"
+                    @click="openBook(book)"
+                  >
                   <div class="aspect-[2/3] relative overflow-hidden">
                     <img
                       v-if="coverUrls.has(book.id)"
@@ -313,6 +316,7 @@ function openLibraryFilePicker() {
                     <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                       {{ formatDate(book.lastReadAt) }}
                     </div>
+                  </div>
                   </div>
                 </div>
               </div>
