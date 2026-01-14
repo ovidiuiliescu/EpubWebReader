@@ -274,11 +274,101 @@ export function useEpub() {
         return `<p>Empty chapter: ${title}</p>`;
       }
 
+      innerHTML = await processImages(innerHTML, archiveZip, baseUrl, chapterPath);
+
       return innerHTML;
     } catch (err) {
       console.warn(`Failed to load chapter content: ${title} (${href})`, err);
       return `<p>Unable to load chapter: ${title}</p>`;
     }
+  }
+
+  async function resolveImagePath(href: string, baseUrl: string | undefined, chapterPath: string): Promise<string> {
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      try {
+        const parsed = new URL(href);
+        return parsed.pathname;
+      } catch {
+        return href;
+      }
+    }
+
+    if (href.startsWith('data:')) {
+      return href;
+    }
+
+    if (href.startsWith('#')) {
+      return href;
+    }
+
+    try {
+      if (baseUrl) {
+        const fullUrl = new URL(href, `http://localhost/${baseUrl}`);
+        return fullUrl.pathname.substring(1);
+      }
+    } catch {
+      return href;
+    }
+
+    const chapterDirEnd = chapterPath.lastIndexOf('/');
+    if (chapterDirEnd >= 0) {
+      const chapterDir = chapterPath.substring(0, chapterDirEnd + 1);
+      try {
+        const fullUrl = new URL(href, `http://localhost/${chapterDir}`);
+        return fullUrl.pathname.substring(1);
+      } catch {
+        return chapterDir + href;
+      }
+    }
+
+    return href;
+  }
+
+  async function processImages(html: string, archiveZip: any, baseUrl: string | undefined, chapterPath: string): Promise<string> {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+    const images = doc.querySelectorAll('img');
+
+    if (images.length === 0) {
+      return html;
+    }
+
+    const imageUrls: Map<string, string> = new Map();
+
+    for (const img of images) {
+      const src = img.getAttribute('src');
+      if (!src) continue;
+
+      if (imageUrls.has(src)) {
+        img.setAttribute('src', imageUrls.get(src)!);
+        continue;
+      }
+
+      if (src.startsWith('data:')) {
+        continue;
+      }
+
+      const resolvedPath = await resolveImagePath(src, baseUrl, chapterPath);
+      const normalizedPath = resolvedPath.replace(/^\//, '');
+
+      const zipFile = archiveZip.file(normalizedPath);
+      if (!zipFile) {
+        console.warn(`Image not found in archive: ${normalizedPath} (from ${src})`);
+        continue;
+      }
+
+      try {
+        const blob = await zipFile.async('blob');
+        const blobUrl = URL.createObjectURL(blob);
+        imageUrls.set(src, blobUrl);
+        img.setAttribute('src', blobUrl);
+      } catch (err) {
+        console.warn(`Failed to load image: ${normalizedPath}`, err);
+      }
+    }
+
+    const result = doc.querySelector('div');
+    return result ? result.innerHTML : html;
   }
 
   async function generateBookId(file: File): Promise<string> {
