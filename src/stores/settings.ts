@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useStorage } from '@vueuse/core';
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import type { UserPreferences } from '@/types/epub';
 
 interface StoredPrefs {
@@ -24,12 +24,27 @@ export const useSettingsStore = defineStore('settings', () => {
   const wideMode = ref(false);
 
   const preferences = reactive<UserPreferences>({
-    ...storedPrefs.value,
-    wideMode: false,
+    theme: storedPrefs.value.theme,
+    fontSize: storedPrefs.value.fontSize,
+    fontFamily: storedPrefs.value.fontFamily,
+    lineHeight: storedPrefs.value.lineHeight,
+    padding: storedPrefs.value.padding,
+    wideMode: wideMode.value,
   });
 
-  storedPrefs.value = DEFAULT_STORED_PREFS;
-  wideMode.value = false;
+  watch(
+    () => ({
+      theme: preferences.theme,
+      fontSize: preferences.fontSize,
+      fontFamily: preferences.fontFamily,
+      lineHeight: preferences.lineHeight,
+      padding: preferences.padding,
+    }),
+    (newPrefs) => {
+      storedPrefs.value = { ...newPrefs };
+    },
+    { deep: true }
+  );
 
   function setTheme(theme: UserPreferences['theme']): void {
     preferences.theme = theme;
@@ -52,19 +67,18 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   function toggleWideMode(): void {
-    wideMode.value = !wideMode.value;
-    preferences.wideMode = wideMode.value;
+    preferences.wideMode = !preferences.wideMode;
+    wideMode.value = preferences.wideMode;
   }
 
   function reset(): void {
-    storedPrefs.value = { ...DEFAULT_STORED_PREFS };
-    wideMode.value = false;
     preferences.theme = DEFAULT_STORED_PREFS.theme;
     preferences.fontSize = DEFAULT_STORED_PREFS.fontSize;
     preferences.fontFamily = DEFAULT_STORED_PREFS.fontFamily;
     preferences.lineHeight = DEFAULT_STORED_PREFS.lineHeight;
     preferences.padding = DEFAULT_STORED_PREFS.padding;
     preferences.wideMode = false;
+    wideMode.value = false;
   }
 
   return {

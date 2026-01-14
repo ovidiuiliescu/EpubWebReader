@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onUpdated, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useBookStore } from '@/stores/book';
 import { useSettingsStore } from '@/stores/settings';
 import { useTheme } from '@/composables/useTheme';
@@ -9,6 +9,7 @@ const settingsStore = useSettingsStore();
 const { themeClasses } = useTheme();
 
 const containerRef = ref<HTMLDivElement | null>(null);
+const articleRef = ref<HTMLDivElement | null>(null);
 let scrollTimer: number | null = null;
 
 const contentWidth = computed(() => 
@@ -51,38 +52,35 @@ function handleScroll() {
   }, 500);
 }
 
-function forceScrollTop() {
+function scrollToTop() {
   if (containerRef.value) {
     containerRef.value.scrollTop = 0;
   }
 }
 
 function renderCurrentChapter() {
-  if (!containerRef.value || !bookStore.currentBook) return;
+  if (!articleRef.value || !bookStore.currentBook) return;
   
   const chapter = bookStore.chapters[bookStore.currentChapter];
   if (!chapter) {
-    containerRef.value.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No chapter content available.</p>';
+    articleRef.value.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400">No chapter content available.</p>';
     return;
   }
   
-  containerRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
+  articleRef.value.innerHTML = chapter.content || '<p class="text-center text-gray-500 dark:text-gray-400">Empty chapter.</p>';
 }
 
-watch(() => bookStore.currentChapter, () => {
+watch(() => bookStore.currentChapter, async (newChapter, oldChapter) => {
+  if (newChapter === oldChapter) return;
+  
   renderCurrentChapter();
-  forceScrollTop();
-});
-
-onUpdated(() => {
-  forceScrollTop();
+  await nextTick();
+  scrollToTop();
 });
 
 onMounted(() => {
   renderCurrentChapter();
-  setTimeout(forceScrollTop, 100);
-  setTimeout(forceScrollTop, 300);
-  setTimeout(forceScrollTop, 500);
+  nextTick(() => scrollToTop());
 });
 
 onUnmounted(() => {
@@ -96,15 +94,13 @@ onUnmounted(() => {
       ref="containerRef"
       class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
       :class="[contentWidth, themeClasses.bg, themeClasses.text]"
-      :style="contentStyle"
       @scroll="handleScroll"
     >
-      <article 
-        class="prose prose-lg max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg"
-        :class="[
-          themeClasses.prose,
-          settingsStore.preferences.fontFamily === 'georgia' || settingsStore.preferences.fontFamily === 'campote' ? 'prose-serif' : 'prose-sans'
-        ]"
+      <div 
+        ref="articleRef"
+        class="prose max-w-none prose-p:leading-loose prose-p:mb-5 prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-lg"
+        :class="themeClasses.prose"
+        :style="contentStyle"
       />
     </div>
   </div>
