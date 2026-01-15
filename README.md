@@ -26,8 +26,8 @@ I wanted to build an EPUB reader for the web. No servers, just pure browser magi
 This project was built by a squad of AI coding agents:
 
 - **[opencode](https://opencode.ai)** - Lead developer. Handled most of the architecture, implementation, and refactoring.
-- **[MinMax M2.1](https://minimax.ai)** - Contributed to features and implementation details.
-- **[GLM 4.7](https://glm.ai)** - Helped with code generation and optimization.
+- **[MinMax M2.1](https://www.minimax.io/)** - Contributed to features and implementation details.
+- **[GLM 4.7](http://z.ai/)** - Helped with code generation and optimization.
 
 I just described what I wanted, they made it happen. Pretty wild, right?
 
